@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IVLabs Player Example</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+        }
+        video {
+            max-width: 800px;
+            width: 100%;
+            border: 1px solid #ccc;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .controls {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        #log {
+            margin-top: 20px;
+            width: 80%;
+            max-width: 800px;
+            background-color: #fff;
+            border: 1px solid #eee;
+            padding: 15px;
+            box-shadow: 0 0 5px rgba(0,0,0,0.05);
+            max-height: 200px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>IVLabs Player Example</h1>
+    <video id="myVideo" controls></video>
+
+    <div class="controls">
+        <button id="playButton">Play</button>
+        <button id="pauseButton">Pause</button>
+        <button id="destroyButton">Destroy Player</button>
+    </div>
+
+    <div id="log"></div>
+
+    <script type="module">
+        import { IVLabsPlayer } from '../dist/index.mjs';
+
+        const videoElement = document.getElementById('myVideo');
+        const logElement = document.getElementById('log');
+
+        // Placeholder video URL - replace with your actual video
+        videoElement.src = 'https://interactive-video-labs.github.io/assets/sample-video.mp4';
+
+        const playerConfig = {
+            videoUrl: videoElement.src,
+            cues: [
+                { id: 'intro', time: 2, label: 'Introduction', payload: { message: 'Welcome!' } },
+                { id: 'question1', time: 5, label: 'Question 1', payload: { interaction: { type: 'choice', question: 'What is 2+2?', options: ['3', '4', '5'] } } },
+                { id: 'midpoint', time: 8, label: 'Midpoint', payload: { message: 'Halfway there!' } },
+                { id: 'question2', time: 12, label: 'Question 2', payload: { interaction: { type: 'text', question: 'Your name?' } } },
+                { id: 'end', time: 15, label: 'End', payload: { message: 'Thanks for watching!' } },
+            ],
+            initialState: 'idle',
+        };
+
+        let player = new IVLabsPlayer(videoElement, playerConfig);
+
+        // Log events to the console and HTML
+        const log = (message) => {
+            console.log(message);
+            logElement.innerHTML += `<p>${message}</p>`;
+            logElement.scrollTop = logElement.scrollHeight; // Scroll to bottom
+        };
+
+        // Example of how to interact with the player's event system (if exposed)
+        // For now, we'll just log internal analytics events
+        player.analytics.onTrack((event, payload) => {
+            log(`Analytics Event: ${event} - ${JSON.stringify(payload)}`);
+        });
+
+        player.interactionManager.onPrompt((payload, cue) => {
+            log(`Interaction Prompt: ${payload.question} (Cue: ${cue.id})`);
+            // Simulate a response after 2 seconds
+            setTimeout(() => {
+                const response = payload.type === 'choice' ? payload.options[1] : 'Simulated Response';
+                player.interactionManager.handleUserResponse(response, cue);
+            }, 2000);
+        });
+
+        player.interactionManager.onResponse((response, cue) => {
+            log(`Interaction Response: ${response} (Cue: ${cue.id})`);
+            // After interaction, transition back to playing (if player supports it)
+            // This part depends on how you design your state machine and player logic
+            // For this example, we'll just log it.
+        });
+
+        // Basic controls
+        document.getElementById('playButton').addEventListener('click', () => {
+            videoElement.play();
+        });
+
+        document.getElementById('pauseButton').addEventListener('click', () => {
+            videoElement.pause();
+        });
+
+        document.getElementById('destroyButton').addEventListener('click', () => {
+            player.destroy();
+            log('Player destroyed.');
+            // Re-initialize for testing if needed
+            // player = new IVLabsPlayer(videoElement, playerConfig);
+        });
+
+        log('IVLabsPlayer initialized.');
+    </script>
+</body>
+</html>

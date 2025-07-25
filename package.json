@@ -20,7 +20,8 @@
     "dev": "tsup src/index.ts --watch --format esm,cjs",
     "test": "vitest run",
     "clean": "rm -rf dist",
-    "prepare": "pnpm build"
+    "prepare": "pnpm build",
+        "serve": "http-server ."
   },
   "keywords": [
     "interactive-video",
@@ -42,6 +43,7 @@
   },
   "packageManager": "pnpm@10.13.1",
   "devDependencies": {
+    "http-server": "^14.1.1",
     "tsup": "^8.0.0",
     "typescript": "^5.4.5",
     "vitest": "^1.5.0"
