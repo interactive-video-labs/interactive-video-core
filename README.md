@@ -19,7 +19,6 @@ pnpm test        # Run unit tests
 
 ```
 /core
-  ├── schema/
   ├── src/
   ├── examples/
   ├── test/
