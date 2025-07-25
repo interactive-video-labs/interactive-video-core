@@ -19,6 +19,7 @@ Structure:
 
 ```
 /core
+  ├── schema/
   ├── src/
   ├── examples/
   ├── test/
