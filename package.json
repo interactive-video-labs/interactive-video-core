@@ -21,7 +21,7 @@
     "test": "vitest run",
     "clean": "rm -rf dist",
     "prepare": "pnpm build",
-        "serve": "http-server ."
+    "serve": "http-server ."
   },
   "keywords": [
     "interactive-video",
