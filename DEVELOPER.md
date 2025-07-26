@@ -76,6 +76,16 @@ Here are the essential commands for development:
 
 For debugging, you can leverage your IDE's debugging capabilities. For example, in VS Code, you can set breakpoints in your TypeScript files (`src/*.ts`) and use the built-in debugger when running `pnpm dev` or `pnpm test`.
 
+## 📬 NPM Publishing
+
+The package is published to NPM under the name `@interactive-video-labs/core`.
+
+To publish:
+
+```bash
+pnpm publish --access public
+```
+
 ## 🤝 Contributing
 
 For guidelines on how to contribute to the project, please refer to the `CONTRIBUTING.md` file.

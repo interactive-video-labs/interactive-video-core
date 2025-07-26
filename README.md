@@ -44,50 +44,6 @@ For a more detailed example, refer to the `examples/index.html` file.
 
 ---
 
-## 🛠 Development Setup
-
-This project uses [`pnpm`](https://pnpm.io) workspaces for efficient dependency management.
-
-1.  **Clone the repository:**
-    ```bash 
-    git clone https://github.com/organization/interactive-video-labs.git
-    
-    cd interactive-video-labs/core
-    ```
-
-2.  **Install dependencies:**
-    ```bash 
-    pnpm install
-    ```
-
-3.  **Run the development server (for the example project):**
-    ```bash
-    pnpm dev
-    ```
-
-4.  **Build the core package:**
-    ```bash
-    pnpm build
-    ```
-
-5.  **Run unit tests:**
-    ```bash
-    pnpm test
-    ```
-
-### Project Structure:
-
-```
-/core
-  ├── src/
-  ├── examples/
-  ├── test/
-  ├── package.json
-  └── tsconfig.json
-```
-
----
-
 ## 🧱 Module Overview
 
 | File                    | Purpose                                       |
@@ -134,52 +90,9 @@ This example helps test core functionality without frameworks like React/Vue.
 
 ---
 
-## 🧪 Testing
+## 🧑‍💻 For Developers
 
-The test suite is written in [Vitest](https://vitest.dev) and located under the `/test/` directory:
-
-```
-/test/
-  ├── analytics.test.ts
-  ├── cueHandler.test.ts
-  ├── interactionManager.test.ts
-  ├── player.test.ts
-  └── stateMachine.test.ts
-```
-
-To run the tests:
-
-```bash
-pnpm test
-```
-
----
-
-## 🛠 Build and Publish
-
-We use `tsup` for bundling. To build the package:
-
-```bash
-pnpm build
-```
-
-This command generates:
-
-*   ESM + CJS builds
-*   UMD build for CDN usage
-*   `types` for full TypeScript support
-
----
-
-## 📬 NPM Publishing
-
-The package is published to NPM under the name `@interactive-video-labs/core`.
-
-To publish:
-
-```bash
-pnpm publish --access public
-```
+For detailed development setup, project structure, testing, build, and publishing instructions, please refer to our [Developer Guide](DEVELOPER.md).
 ---
 
 ## 🤝 Contributing
