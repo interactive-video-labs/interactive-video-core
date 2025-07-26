@@ -97,7 +97,7 @@
 </head>
 <body>
     <h1>IVLabs Player Example</h1>
-    <video id="myVideo" controls></video>
+    <div id="player-container"></div>
 
     <div class="controls">
         <button id="playButton">Play</button>
@@ -110,14 +110,10 @@
     <script type="module">
         import { IVLabsPlayer } from '../dist/index.mjs';
 
-        const videoElement = document.getElementById('myVideo');
         const logElement = document.getElementById('log');
 
-
-        videoElement.src = 'https://interactive-video-labs.github.io/assets/sample-video.mp4';
-
         const playerConfig = {
-            videoUrl: videoElement.src,
+            videoUrl: 'https://interactive-video-labs.github.io/assets/sample-video.mp4',
             cues: [
                 { id: 'intro', time: 2, label: 'Introduction', payload: { message: 'Welcome!' } },
                 { id: 'question1', time: 5, label: 'Question 1', payload: { interaction: { type: 'choice', title: 'Quick Question', description: 'Please select the correct answer.', question: 'What is 2+2?', options: ['3', '4', '5'] } } },
@@ -128,7 +124,7 @@
             initialState: 'idle',
         };
 
-        let player = new IVLabsPlayer(videoElement, playerConfig);
+        let player = new IVLabsPlayer('player-container', playerConfig);
 
         // Log events to the console and HTML
         const log = (message) => {
@@ -156,11 +152,11 @@
 
         // Basic controls
         document.getElementById('playButton').addEventListener('click', () => {
-            videoElement.play();
+            player.play();
         });
 
         document.getElementById('pauseButton').addEventListener('click', () => {
-            videoElement.pause();
+            player.pause();
         });
 
         document.getElementById('destroyButton').addEventListener('click', () => {

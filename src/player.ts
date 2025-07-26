@@ -22,21 +22,35 @@ export class IVLabsPlayer {
 
   private videoContainer: HTMLElement // New property for the video container
 
-  constructor(videoElement: HTMLVideoElement, config: PlayerConfig) {
-    this.videoElement = videoElement
+  constructor(target: string, config: PlayerConfig) {
+    const targetElement = document.getElementById(target)
+
+    if (!targetElement) {
+      throw new Error(`Target container with ID "${target}" not found.`)
+    }
+
     this.config = config
 
     // Create a container for the video and interactions
     this.videoContainer = document.createElement('div')
-    this.videoContainer.className = 'ivl-player-container' // Add a class for styling
-    this.videoElement.parentNode?.insertBefore(this.videoContainer, this.videoElement)
+    this.videoContainer.className = 'ivl-player-container'
+
+    // Create the video element
+    this.videoElement = document.createElement('video')
+    this.videoElement.src = this.config.videoUrl
+    this.videoElement.controls = true
+
+    // Add video to its container
     this.videoContainer.appendChild(this.videoElement)
+
+    // Clear the target element and append the player
+    targetElement.innerHTML = ''
+    targetElement.appendChild(this.videoContainer)
 
     this.analytics = new Analytics()
     this.stateMachine = new StateMachine(config.initialState || 'idle')
-    this.interactionManager = new InteractionManager(this.videoContainer) // Pass the container
-    console.log("IVLabsPlayer's InteractionManager instance:", this.interactionManager);
-    this.cueHandler = new CueHandler(videoElement)
+    this.interactionManager = new InteractionManager(this.videoContainer)
+    this.cueHandler = new CueHandler(this.videoElement)
     this.cueHandler.registerCues(config.cues || [])
 
     this.bindEvents()
@@ -58,14 +72,10 @@ export class IVLabsPlayer {
     })
 
     this.interactionManager.onResponse((response: any, cue: CuePoint) => {
-      console.log('Interaction response received in player.ts:', response, cue);
-      console.log('Inside player.ts onResponse callback - this:', this);
-      console.log('Inside player.ts onResponse callback - this.interactionManager:', this.interactionManager);
       this.videoElement.play().catch(error => {
         console.error('Video playback failed:', error)
-      }) // Resume video after interaction
-      console.log('Attempting to play video after interaction.')
-      this.stateMachine.transitionTo('playing') // Adjust as needed
+      })
+      this.stateMachine.transitionTo('playing')
       this.analytics.track('INTERACTION_COMPLETED', { event: 'INTERACTION_COMPLETED', cueId: cue.id, data: { response: response }, timestamp: Date.now() })
     })
 
@@ -92,6 +102,14 @@ export class IVLabsPlayer {
 
   public getState(): PlayerState {
     return this.stateMachine.getState()
+  }
+
+  public play(): void {
+    this.videoElement.play()
+  }
+
+  public pause(): void {
+    this.videoElement.pause()
   }
 
   public destroy(): void {
