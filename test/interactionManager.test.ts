@@ -6,10 +6,40 @@ describe('InteractionManager', () => {
   let interactionManager: InteractionManager;
   let mockOnPromptCallback: vi.Mock;
   let mockOnResponseCallback: vi.Mock;
+  let mockContainer: HTMLElement;
 
   beforeEach(() => {
     vi.clearAllMocks();
-    interactionManager = new InteractionManager();
+
+    // Mock the container element with necessary DOM methods
+    mockContainer = {
+      appendChild: vi.fn(),
+      removeChild: vi.fn(),
+      remove: vi.fn(),
+    } as unknown as HTMLElement;
+
+    // Mock document.createElement for elements created by InteractionManager
+    vi.spyOn(document, 'createElement').mockImplementation((tagName: string) => {
+      const mockElement = {
+        appendChild: vi.fn(),
+        remove: vi.fn(),
+        addEventListener: vi.fn(),
+        removeEventListener: vi.fn(),
+        setAttribute: vi.fn(),
+        textContent: '',
+        className: '',
+        dataset: {},
+        value: '',
+      } as unknown as HTMLElement;
+
+      if (tagName === 'input') {
+        (mockElement as HTMLInputElement).value = '';
+      }
+
+      return mockElement;
+    });
+
+    interactionManager = new InteractionManager(mockContainer);
     mockOnPromptCallback = vi.fn();
     mockOnResponseCallback = vi.fn();
 

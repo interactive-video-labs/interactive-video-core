@@ -16,18 +16,52 @@ describe('IVLabsPlayer', () => {
   let videoElement: HTMLVideoElement;
   let config: PlayerConfig;
   let player: IVLabsPlayer;
+  let mockStateMachineInstance: StateMachine;
+  let mockCueHandlerInstance: CueHandler;
+  let mockInteractionManagerInstance: InteractionManager;
+  let mockAnalyticsInstance: Analytics;
+  let mockPlayerContainer: HTMLElement;
+  let mockTargetElement: HTMLElement;
 
   beforeEach(() => {
-    // Reset mocks before each test
+    // Reset all mocks before each test
     vi.clearAllMocks();
 
-    // Mock HTMLVideoElement
+    // Mock HTMLVideoElement properties and methods
     videoElement = {
       addEventListener: vi.fn(),
       removeEventListener: vi.fn(),
       currentTime: 0,
-      pause: vi.fn(), // Mock the pause method
+      pause: vi.fn(),
+      play: vi.fn(),
+      src: '',
+      controls: false,
     } as unknown as HTMLVideoElement;
+
+    // Mock HTMLElement for player container and target element
+    mockPlayerContainer = {
+      appendChild: vi.fn(),
+      removeChild: vi.fn(),
+      innerHTML: '',
+      className: '',
+    } as unknown as HTMLElement;
+
+    mockTargetElement = {
+      appendChild: vi.fn(),
+      innerHTML: '',
+    } as unknown as HTMLElement;
+
+    // Mock document.createElement and document.getElementById
+    vi.spyOn(document, 'createElement').mockImplementation((tagName: string) => {
+      if (tagName === 'video') {
+        return videoElement;
+      } else if (tagName === 'div') {
+        return mockPlayerContainer;
+      }
+      return {} as HTMLElement; // Fallback for other elements
+    });
+
+    vi.spyOn(document, 'getElementById').mockReturnValue(mockTargetElement);
 
     config = {
       videoUrl: 'test.mp4',
@@ -38,74 +72,96 @@ describe('IVLabsPlayer', () => {
       initialState: 'idle',
     };
 
-    player = new IVLabsPlayer(videoElement, config);
+    // Create a new player instance for each test
+    player = new IVLabsPlayer('test-target', config);
+
+    // Get mock instances for easier assertion
+    mockStateMachineInstance = (StateMachine as vi.Mock).mock.instances[0];
+    mockCueHandlerInstance = (CueHandler as vi.Mock).mock.instances[0];
+    mockInteractionManagerInstance = (InteractionManager as vi.Mock).mock.instances[0];
+    mockAnalyticsInstance = (Analytics as vi.Mock).mock.instances[0];
   });
 
-  it('should initialize dependencies correctly', () => {
+  it('should initialize dependencies correctly and register cues', () => {
     expect(StateMachine).toHaveBeenCalledWith('idle');
-    expect(InteractionManager).toHaveBeenCalledTimes(1);
+    expect(InteractionManager).toHaveBeenCalledWith(mockPlayerContainer);
     expect(CueHandler).toHaveBeenCalledWith(videoElement);
     expect(Analytics).toHaveBeenCalledTimes(1);
-    expect(CueHandler.prototype.registerCues).toHaveBeenCalledWith(config.cues);
-    expect(CueHandler.prototype.start).toHaveBeenCalledTimes(1);
+    expect(mockCueHandlerInstance.registerCues).toHaveBeenCalledWith(config.cues);
+    expect(mockCueHandlerInstance.start).toHaveBeenCalledTimes(1);
   });
 
-  it('should bind video events', () => {
-    expect(videoElement.addEventListener).toHaveBeenCalledWith('play', expect.any(Function));
-    expect(videoElement.addEventListener).toHaveBeenCalledWith('pause', expect.any(Function));
-    expect(videoElement.addEventListener).toHaveBeenCalledWith('ended', expect.any(Function));
+  describe('Video Event Handling', () => {
+    let playCallback: EventListener;
+    let pauseCallback: EventListener;
+    let endedCallback: EventListener;
+
+    beforeEach(() => {
+      // Extract event listener callbacks
+      playCallback = (videoElement.addEventListener as vi.Mock).mock.calls.find(call => call[0] === 'play')[1];
+      pauseCallback = (videoElement.addEventListener as vi.Mock).mock.calls.find(call => call[0] === 'pause')[1];
+      endedCallback = (videoElement.addEventListener as vi.Mock).mock.calls.find(call => call[0] === 'ended')[1];
+    });
+
+    it('should bind video events', () => {
+      expect(videoElement.addEventListener).toHaveBeenCalledWith('play', expect.any(Function));
+      expect(videoElement.addEventListener).toHaveBeenCalledWith('pause', expect.any(Function));
+      expect(videoElement.addEventListener).toHaveBeenCalledWith('ended', expect.any(Function));
+    });
+
+    it('should track VIDEO_STARTED on play event', () => {
+      playCallback();
+      expect(mockAnalyticsInstance.track).toHaveBeenCalledWith('VIDEO_STARTED');
+    });
+
+    it('should track VIDEO_PAUSED on pause event', () => {
+      pauseCallback();
+      expect(mockAnalyticsInstance.track).toHaveBeenCalledWith('VIDEO_PAUSED');
+    });
+
+    it('should track VIDEO_ENDED on ended event', () => {
+      endedCallback();
+      expect(mockAnalyticsInstance.track).toHaveBeenCalledWith('VIDEO_ENDED');
+    });
   });
 
-  it('should handle cue triggered event', () => {
-    const mockCue: CuePoint = { id: 'testCue', time: 10 };
+  it('should handle cue triggered event by transitioning state and handling interaction', () => {
+    const mockCue: CuePoint = { id: 'testCue', time: 10, payload: { interaction: { type: 'choice', question: 'test' } } };
     // Simulate cueHandler.onCue callback
-    const onCueCallback = (CueHandler.prototype.onCue as vi.Mock).mock.calls[0][0];
+    const onCueCallback = (mockCueHandlerInstance.onCue as vi.Mock).mock.calls[0][0];
     onCueCallback(mockCue);
 
-    expect(StateMachine.prototype.transitionTo).toHaveBeenCalledWith('waitingForInteraction');
-    expect(InteractionManager.prototype.handleInteractionCue).toHaveBeenCalledWith(mockCue);
-    expect(Analytics.prototype.track).toHaveBeenCalledWith('CUE_TRIGGERED', expect.any(Object));
+    expect(mockStateMachineInstance.transitionTo).toHaveBeenCalledWith('waitingForInteraction');
+    expect(mockInteractionManagerInstance.handleInteractionCue).toHaveBeenCalledWith(mockCue);
+    expect(mockAnalyticsInstance.track).toHaveBeenCalledWith('CUE_TRIGGERED', expect.any(Object));
   });
 
-  it('should call analytics track on video play', () => {
-    const playCallback = (videoElement.addEventListener as vi.Mock).mock.calls.find(call => call[0] === 'play')[1];
-    playCallback();
-    expect(Analytics.prototype.track).toHaveBeenCalledWith('VIDEO_STARTED');
-  });
-
-  it('should call analytics track on video pause', () => {
-    const pauseCallback = (videoElement.addEventListener as vi.Mock).mock.calls.find(call => call[0] === 'pause')[1];
-    pauseCallback();
-    expect(Analytics.prototype.track).toHaveBeenCalledWith('VIDEO_PAUSED');
-  });
-
-  it('should call analytics track on video ended', () => {
-    const endedCallback = (videoElement.addEventListener as vi.Mock).mock.calls.find(call => call[0] === 'ended')[1];
-    endedCallback();
-    expect(Analytics.prototype.track).toHaveBeenCalledWith('VIDEO_ENDED');
-  });
-
-  it('should load cues via cue handler', () => {
+  it('should load new cues via cue handler', () => {
     const newCues: CuePoint[] = [{ id: 'newCue', time: 20 }];
     player.loadCues(newCues);
-    expect(CueHandler.prototype.loadCues).toHaveBeenCalledWith(newCues);
+    expect(mockCueHandlerInstance.loadCues).toHaveBeenCalledWith(newCues);
   });
 
-  it('should load interactions via interaction manager', () => {
+  it('should load new interactions via interaction manager', () => {
     const newInteractions = [{ type: 'choice', question: 'test' }];
     player.loadInteractions(newInteractions);
-    expect(InteractionManager.prototype.loadInteractions).toHaveBeenCalledWith(newInteractions);
+    expect(mockInteractionManagerInstance.loadInteractions).toHaveBeenCalledWith(newInteractions);
   });
 
-  it('should return current state from state machine', () => {
-    (StateMachine.prototype.getState as vi.Mock).mockReturnValue('playing');
+  it('should return the current state from the state machine', () => {
+    (mockStateMachineInstance.getState as vi.Mock).mockReturnValue('playing');
     expect(player.getState()).toBe('playing');
   });
 
-  it('should destroy dependencies on player destroy', () => {
+  it('should pause the video element', () => {
+    player.pause();
+    expect(videoElement.pause).toHaveBeenCalledTimes(1);
+  });
+
+  it('should destroy dependencies and track PLAYER_DESTROYED on player destroy', () => {
     player.destroy();
-    expect(CueHandler.prototype.destroy).toHaveBeenCalledTimes(1);
-    expect(InteractionManager.prototype.destroy).toHaveBeenCalledTimes(1);
-    expect(Analytics.prototype.track).toHaveBeenCalledWith('PLAYER_DESTROYED');
+    expect(mockCueHandlerInstance.destroy).toHaveBeenCalledTimes(1);
+    expect(mockInteractionManagerInstance.destroy).toHaveBeenCalledTimes(1);
+    expect(mockAnalyticsInstance.track).toHaveBeenCalledWith('PLAYER_DESTROYED');
   });
 });
