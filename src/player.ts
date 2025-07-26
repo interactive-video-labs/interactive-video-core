@@ -27,6 +27,12 @@ export class IVLabsPlayer {
 
   private videoContainer: HTMLElement 
 
+
+  /**
+   * Creates an instance of IVLabsPlayer.
+   * @param target - The ID of the HTML element where the player will be rendered.
+   * @param config - Configuration options for the player, including video URL, initial state, and cues.
+   */
   constructor(target: string, config: PlayerConfig) {
     const targetElement = document.getElementById(target)
 
@@ -62,6 +68,10 @@ export class IVLabsPlayer {
     this.cueHandler.start()
   }
 
+  /**
+   * Binds event listeners for cue handling, interaction management, and analytics tracking.
+   * This method sets up the necessary callbacks to handle user interactions and video events.
+   */
   private bindEvents(): void {
     this.cueHandler.onCue((cue: CuePoint) => {
       if (cue.payload && cue.payload.interaction) {
@@ -98,26 +108,54 @@ export class IVLabsPlayer {
     })
   }
 
+
+  /**
+   * Loads cue points into the player.
+   * @param cues - An array of cue points to be loaded.
+   */
   public loadCues(cues: CuePoint[]): void {
     this.cueHandler.loadCues(cues)
   }
 
+
+  /**
+   * Loads interactions into the player.
+   * @param interactions - An array of interaction segments to be loaded.
+   */
   public loadInteractions(interactions: InteractionPayload[]): void {
     this.interactionManager.loadInteractions(interactions)
   }
 
+
+  /**
+   * Gets the current state of the player.
+   * @returns The current player state.
+   */
   public getState(): PlayerState {
     return this.stateMachine.getState()
   }
 
+
+  /**
+   * Plays the video.
+   */
   public play(): void {
     this.videoElement.play()
   }
 
+
+  /**
+   * Pauses the video.
+   */
   public pause(): void {
     this.videoElement.pause()
   }
 
+
+  /**
+   * Destroys the player.
+   * This method cleans up resources, removes event listeners, and resets the player state.
+   */
   public destroy(): void {
     console.log('IVLabsPlayer destroy() called.');
     this.cueHandler.destroy()
