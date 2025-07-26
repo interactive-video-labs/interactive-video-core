@@ -56,6 +56,8 @@ export interface AnalyticsHook {
 
 export type InteractionPayload = {
   type: 'choice' | 'text' | 'rating'
+  title?: string
+  description?: string
   question: string
   options?: string[]
   correctAnswer?: string

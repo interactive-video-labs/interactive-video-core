@@ -26,6 +26,7 @@ describe('IVLabsPlayer', () => {
       addEventListener: vi.fn(),
       removeEventListener: vi.fn(),
       currentTime: 0,
+      pause: vi.fn(), // Mock the pause method
     } as unknown as HTMLVideoElement;
 
     config = {

@@ -15,6 +15,57 @@
             margin: 0;
             background-color: #f0f0f0;
         }
+        .ivl-player-container {
+            position: relative;
+            max-width: 800px;
+            width: 100%;
+            border: 1px solid #ccc;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+
+        video {
+            width: 100%;
+            display: block; /* Remove extra space below video */
+        }
+
+        .ivl-interaction-overlay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            z-index: 10;
+            width: 80%;
+            max-width: 400px;
+        }
+
+        .ivl-interaction-overlay h3 {
+            margin-top: 0;
+            color: #4CAF50;
+        }
+
+        .ivl-interaction-overlay button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin-top: 15px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+
+        .ivl-interaction-overlay button:hover {
+            background-color: #45a049;
+        }
+
         video {
             max-width: 800px;
             width: 100%;
@@ -62,16 +113,16 @@
         const videoElement = document.getElementById('myVideo');
         const logElement = document.getElementById('log');
 
-        // Placeholder video URL - replace with your actual video
+
         videoElement.src = 'https://interactive-video-labs.github.io/assets/sample-video.mp4';
 
         const playerConfig = {
             videoUrl: videoElement.src,
             cues: [
                 { id: 'intro', time: 2, label: 'Introduction', payload: { message: 'Welcome!' } },
-                { id: 'question1', time: 5, label: 'Question 1', payload: { interaction: { type: 'choice', question: 'What is 2+2?', options: ['3', '4', '5'] } } },
+                { id: 'question1', time: 5, label: 'Question 1', payload: { interaction: { type: 'choice', title: 'Quick Question', description: 'Please select the correct answer.', question: 'What is 2+2?', options: ['3', '4', '5'] } } },
                 { id: 'midpoint', time: 8, label: 'Midpoint', payload: { message: 'Halfway there!' } },
-                { id: 'question2', time: 12, label: 'Question 2', payload: { interaction: { type: 'text', question: 'Your name?' } } },
+                { id: 'question2', time: 12, label: 'Question 2', payload: { interaction: { type: 'text', title: 'Your Information', description: 'Please enter your name below.', question: 'Your name?' } } },
                 { id: 'end', time: 15, label: 'End', payload: { message: 'Thanks for watching!' } },
             ],
             initialState: 'idle',
@@ -94,11 +145,6 @@
 
         player.interactionManager.onPrompt((payload, cue) => {
             log(`Interaction Prompt: ${payload.question} (Cue: ${cue.id})`);
-            // Simulate a response after 2 seconds
-            setTimeout(() => {
-                const response = payload.type === 'choice' ? payload.options[1] : 'Simulated Response';
-                player.interactionManager.handleUserResponse(response, cue);
-            }, 2000);
         });
 
         player.interactionManager.onResponse((response, cue) => {
