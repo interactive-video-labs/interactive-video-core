@@ -15,23 +15,48 @@ export class InteractionManager {
   private container: HTMLElement
   private interactionDiv: HTMLElement | null = null;
 
+
+  /**
+   * Creates an instance of InteractionManager.
+   * @param container - The container element where interactions will be rendered.
+   */
   constructor(container: HTMLElement) {
     this.container = container
   }
 
+  /**
+   * Loads interactions from a given source.
+   * @param interactions - An array of interaction objects to be loaded.
+   */
   public loadInteractions(interactions: any[]) {
     // TODO: Implement interaction loading logic
     console.log('Loading interactions:', interactions);
   }
 
+
+  /**
+   * Registers handlers for interaction prompts and responses.
+   * @param handler - The function to be called when an interaction prompt is triggered.
+   */
   public onPrompt(handler: InteractionHandler) {
     this.onPromptCallback = handler
   }
 
+
+  /**
+   * Registers a callback function to be invoked when a response event occurs.
+   *
+   * @param handler - The function to handle the response event.
+   */
   public onResponse(handler: ResponseHandler) {
     this.onResponseCallback = handler
   }
 
+
+  /**
+   * Handles an interaction cue by rendering the interaction and invoking the prompt callback.
+   * @param cue - The cue point that triggered the interaction.
+   */
   public handleInteractionCue(cue: Cue) {
     const payload = cue.payload?.interaction as InteractionPayload | undefined
 
@@ -43,6 +68,14 @@ export class InteractionManager {
     }
   }
 
+
+  /**
+   * Renders the interaction based on the provided payload and cue.
+   * This method creates the necessary HTML elements to display the interaction
+   * and appends them to the container.
+   * @param payload - The interaction payload containing details about the interaction.
+   * @param cue - The cue point associated with the interaction.
+   */
   private renderInteraction(payload: InteractionPayload, cue: Cue): void {
     this.clearInteractions();
 
@@ -74,6 +107,13 @@ export class InteractionManager {
     this.container.appendChild(this.interactionDiv);
   }
 
+
+  /**
+   * Renders a choice interaction based on the provided payload and cue.
+   * This method creates buttons for each choice option and appends them to the interaction div.
+   * @param payload - The interaction payload containing choice options.
+   * @param cue - The cue point associated with the interaction.
+   */
   private renderChoiceInteraction(payload: InteractionPayload, cue: Cue): void {
     if (!this.interactionDiv) return;
 
@@ -109,6 +149,13 @@ export class InteractionManager {
     });
   }
 
+
+  /**
+   * Renders a text interaction based on the provided payload and cue.
+   * This method creates an input field for user text input and a submit button.
+   * @param payload - The interaction payload containing the question and other details.
+   * @param cue - The cue point associated with the interaction.
+   */
   private renderTextInteraction(payload: InteractionPayload, cue: Cue): void {
     if (!this.interactionDiv) return;
 
@@ -137,6 +184,13 @@ export class InteractionManager {
     });
   }
 
+
+  /**
+   * Renders a default interaction if no specific type is provided.
+   * This method creates a simple interaction with a button to respond.
+   * @param payload - The interaction payload containing the question and other details.
+   * @param cue - The cue point associated with the interaction.
+   */
   private renderDefaultInteraction(payload: InteractionPayload, cue: Cue): void {
     if (!this.interactionDiv) return;
 
@@ -158,6 +212,11 @@ export class InteractionManager {
     });
   }
 
+
+  /**
+   * Clears the current interactions from the container.
+   * This method removes the interaction div and resets it to null.
+   */
   private clearInteractions(): void {
     console.log('Clearing interactions.');
     if (this.interactionDiv) {
@@ -166,6 +225,12 @@ export class InteractionManager {
     }
   }
 
+
+  /**
+   * Handles the user response by invoking the registered response callback.
+   * @param response - The user's response to the interaction.
+   * @param cue - The cue point associated with the interaction.
+   */
   public handleUserResponse(response: any, cue: Cue) {
     if (this.onResponseCallback) {
       console.log('Calling onResponseCallback...');
@@ -173,6 +238,11 @@ export class InteractionManager {
     }
   }
 
+
+  /**
+   * Destroys the InteractionManager instance.
+   * This method clears the interaction callbacks and removes any rendered interactions.
+   */
   public destroy() {
     this.onPromptCallback = undefined
     this.onResponseCallback = undefined
