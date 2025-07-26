@@ -8,6 +8,7 @@ on:
 jobs:
   publish:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -23,6 +24,7 @@ jobs:
         with:
           node-version: '18'
           cache: 'pnpm'
+          registry-url: 'https://registry.npmjs.org/'
 
       - name: Install dependencies
         run: pnpm install --no-frozen-lockfile
@@ -34,6 +36,6 @@ jobs:
         run: pnpm test
 
       - name: Publish to NPM
-        run:  pnpm publish --access public --no-git-checks  
+        run: pnpm publish --access public --no-git-checks
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
