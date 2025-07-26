@@ -12,6 +12,11 @@ import type {
   InteractionPayload
 } from './types'
 
+/**
+ * The main class for the Interactive Video Labs Player.
+ * This class orchestrates the video playback, cue handling, interaction management,
+ * and analytics tracking.
+ */
 export class IVLabsPlayer {
   private videoElement: HTMLVideoElement
   private config: PlayerConfig
