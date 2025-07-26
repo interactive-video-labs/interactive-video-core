@@ -22,25 +22,28 @@ yarn add @interactive-video-labs/core
 
 ### Basic Usage
 
-Here's a quick example of how to initialize and use the `IVLabsPlayer` in your project:
+Here's a quick example of how to initialize and use the `IVLabsPlayer` in your project, similar to the `examples/index.html` demo:
 
 ```typescript
 import { IVLabsPlayer } from '@interactive-video-labs/core';
 
-const player = new IVLabsPlayer({
-  // Your player configuration goes here
-  // For example:
-  // videoElement: document.getElementById('my-video-player'),
-  // cues: [
-  //   { time: 10, type: 'prompt', data: { message: 'Choose an option!' } },
-  // ],
-});
+const playerConfig = {
+    videoUrl: 'https://interactive-video-labs.github.io/assets/sample-video.mp4',
+    cues: [
+        { id: 'intro', time: 2, label: 'Introduction', payload: { message: 'Welcome!' } },
+        { id: 'question1', time: 5, label: 'Question 1', payload: { interaction: { type: 'choice', title: 'Quick Question', description: 'Please select the correct answer.', question: 'What is 2+2?', options: ['3', '4', '5'] } } },
+    ],
+    initialState: 'idle',
+};
+
+// Assuming you have a div with id="player-container" in your HTML
+const player = new IVLabsPlayer('player-container', playerConfig);
 
 player.init();
-// player.play();
+// player.play(); // Start playback
 ```
 
-For a more detailed example, refer to the `examples/index.html` file.
+For a more detailed example, refer to the [`examples/index.html`](examples/index.html) file.
 
 ---
 
@@ -93,6 +96,7 @@ This example helps test core functionality without frameworks like React/Vue.
 ## 🧑‍💻 For Developers
 
 For detailed development setup, project structure, testing, build, and publishing instructions, please refer to our [Developer Guide](DEVELOPER.md).
+
 ---
 
 ## 🤝 Contributing
