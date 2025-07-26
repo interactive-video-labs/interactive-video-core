@@ -1,4 +1,11 @@
 
+/**
+ * Interactive Video Labs Player Types
+ * This file defines the types and interfaces used in the IVLabsPlayer.
+ * It includes types for player configuration, cue points, interactions, analytics,
+ * and localization.
+ */
+
 
 export type PlayerConfig = {
   videoUrl: string
