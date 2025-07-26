@@ -2,6 +2,11 @@ import { CuePoint as Cue } from "./types"
 
 export type CueCallback = (cue: Cue) => void
 
+/**
+ * Manages and triggers cue points during video playback.
+ * This class is responsible for registering cue points, listening for video
+ * time updates, and triggering registered callbacks when a cue point is reached.
+ */
 export class CueHandler {
   private cues: Cue[] = []
   private callback?: CueCallback

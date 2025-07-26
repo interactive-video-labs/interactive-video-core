@@ -25,7 +25,7 @@ export class IVLabsPlayer {
   private interactionManager: InteractionManager
   private analytics: Analytics
 
-  private videoContainer: HTMLElement // New property for the video container
+  private videoContainer: HTMLElement 
 
   constructor(target: string, config: PlayerConfig) {
     const targetElement = document.getElementById(target)
