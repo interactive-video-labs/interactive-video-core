@@ -4,16 +4,75 @@ Welcome to `@interactive-video-labs/core` — the framework-agnostic TypeScript 
 
 ---
 
-## 📦 Repository Strategy (with `pnpm`)
+## 🚀 Getting Started
+
+To get started with `@interactive-video-labs/core`, follow these steps:
+
+### Installation
+
+If you're integrating this module into an existing project, you can install it via `pnpm`, `npm`, or `yarn`:
+
+```bash
+pnpm add @interactive-video-labs/core
+# or
+npm install @interactive-video-labs/core
+# or
+yarn add @interactive-video-labs/core
+```
+
+### Basic Usage
+
+Here's a quick example of how to initialize and use the `IVLabsPlayer` in your project:
+
+```typescript
+import { IVLabsPlayer } from '@interactive-video-labs/core';
+
+const player = new IVLabsPlayer({
+  // Your player configuration goes here
+  // For example:
+  // videoElement: document.getElementById('my-video-player'),
+  // cues: [
+  //   { time: 10, type: 'prompt', data: { message: 'Choose an option!' } },
+  // ],
+});
+
+player.init();
+// player.play();
+```
+
+For a more detailed example, refer to the `examples/index.html` file.
+
+---
+
+## 🛠 Development Setup
 
 This project uses [`pnpm`](https://pnpm.io) workspaces for efficient dependency management.
 
-```bash
+1.  **Clone the repository:**
+    ```bash
+git clone https://github.com/organization/interactive-video-labs.git
+    cd interactive-video-labs/core
+    ```
+
+2.  **Install dependencies:**
+    ```bash
 pnpm install
-pnpm dev         # Run demo project
-pnpm build       # Build core package
-pnpm test        # Run unit tests
-```
+    ```
+
+3.  **Run the development server (for the example project):**
+    ```bash
+pnpm dev
+    ```
+
+4.  **Build the core package:**
+    ```bash
+pnpm build
+    ```
+
+5.  **Run unit tests:**
+    ```bash
+pnpm test
+    ```
 
 ### Project Structure:
 
@@ -46,20 +105,20 @@ pnpm test        # Run unit tests
 
 The `@interactive-video-labs/core` engine includes the following core functionalities:
 
--   **Player Configuration Schema:** Defined for robust player setup.
--   **Cue Engine:** Designed to handle video cues and emit events.
--   **Core Class (`interactive-video-labsPlayer`):** The central engine class.
--   **State Machine:** Manages the flow transitions (idle → prompt → branch).
--   **Interaction Manager:** Handles user interaction prompts and branching logic.
--   **Analytics Hook System:** For emitting lifecycle and custom events.
--   **Centralized Types:** Shared TypeScript types and interfaces for consistency.
--   **Basic HTML Demo:** A raw HTML demo (`examples/index.html`) to validate core functionality without frameworks.
--   **Testing Framework:** Utilizes Vitest for comprehensive unit testing.
--   **Localization Support:** Enabled for broader audience reach.
--   **Subtitle-based Cue Generation:** Supports generating cues from subtitles.
--   **Multi-segment Video Lessons:** Capability to support video content divided into multiple segments.
--   **Build and Publish Pipeline:** Configured for NPM publishing.
--   **Decision History Tracking:** Explored with adapters for tracking user decisions.
+*   **Player Configuration Schema:** Defined for robust player setup.
+*   **Cue Engine:** Designed to handle video cues and emit events.
+*   **Core Class (`IVLabsPlayer`):** The central engine class.
+*   **State Machine:** Manages the flow transitions (idle → prompt → branch).
+*   **Interaction Manager:** Handles user interaction prompts and branching logic.
+*   **Analytics Hook System:** For emitting lifecycle and custom events.
+*   **Centralized Types:** Shared TypeScript types and interfaces for consistency.
+*   **Basic HTML Demo:** A raw HTML demo (`examples/index.html`) to validate core functionality without frameworks.
+*   **Testing Framework:** Utilizes Vitest for comprehensive unit testing.
+*   **Localization Support:** Enabled for broader audience reach.
+*   **Subtitle-based Cue Generation:** Supports generating cues from subtitles.
+*   **Multi-segment Video Lessons:** Capability to support video content divided into multiple segments.
+*   **Build and Publish Pipeline:** Configured for NPM publishing.
+*   **Decision History Tracking:** Explored with adapters for tracking user decisions.
 
 ---
 
@@ -105,9 +164,9 @@ pnpm build
 
 This command generates:
 
--   ESM + CJS builds
--   UMD build for CDN usage
--   `types` for full TypeScript support
+*   ESM + CJS builds
+*   UMD build for CDN usage
+*   `types` for full TypeScript support
 
 ---
 
@@ -120,3 +179,14 @@ To publish:
 ```bash
 pnpm publish --access public
 ```
+---
+
+## 🤝 Contributing
+
+We welcome contributions! Please see our [CONTRIBUTING](CONTRIBUTING.md) for guidelines.
+
+---
+
+## 📄 License
+
+This project is licensed under the [MIT License](LICENSE).

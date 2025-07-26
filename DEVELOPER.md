@@ -1,6 +1,6 @@
-# Developer Guide for @ivlabs/core
+# Developer Guide for @interactive-video-labs/core
 
-This guide provides technical details for developers working on `@ivlabs/core`, the framework-agnostic TypeScript module for interactive video experiences.
+This guide provides technical details for developers working on `@interactive-video-labs/core`, the framework-agnostic TypeScript module for interactive video experiences.
 
 ## 🚀 Getting Started
 
