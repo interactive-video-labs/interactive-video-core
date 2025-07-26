@@ -49,29 +49,30 @@ For a more detailed example, refer to the `examples/index.html` file.
 This project uses [`pnpm`](https://pnpm.io) workspaces for efficient dependency management.
 
 1.  **Clone the repository:**
-    ```bash
-git clone https://github.com/organization/interactive-video-labs.git
+    ```bash 
+    git clone https://github.com/organization/interactive-video-labs.git
+    
     cd interactive-video-labs/core
     ```
 
 2.  **Install dependencies:**
-    ```bash
-pnpm install
+    ```bash 
+    pnpm install
     ```
 
 3.  **Run the development server (for the example project):**
     ```bash
-pnpm dev
+    pnpm dev
     ```
 
 4.  **Build the core package:**
     ```bash
-pnpm build
+    pnpm build
     ```
 
 5.  **Run unit tests:**
     ```bash
-pnpm test
+    pnpm test
     ```
 
 ### Project Structure:
