@@ -75,6 +75,7 @@ export class IVLabsPlayer {
       this.videoElement.play().catch(error => {
         console.error('Video playback failed:', error)
       })
+      console.log('Interaction response received: inside interaction manager :', response)
       this.stateMachine.transitionTo('playing')
       this.analytics.track('INTERACTION_COMPLETED', { event: 'INTERACTION_COMPLETED', cueId: cue.id, data: { response: response }, timestamp: Date.now() })
     })

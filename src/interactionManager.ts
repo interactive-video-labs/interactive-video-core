@@ -4,12 +4,18 @@ import { InteractionPayload } from './types'
 type InteractionHandler = (payload: InteractionPayload, cue: Cue) => void
 type ResponseHandler = (response: any, cue: Cue) => void
 
+/**
+ * Manages the lifecycle of interactions within the player.
+ * This class is responsible for rendering interactions, handling user responses,
+ * and communicating with the parent application.
+ */
 export class InteractionManager {
   private onPromptCallback?: InteractionHandler
   private onResponseCallback?: ResponseHandler
-  private container: HTMLElement // New property to hold the container element
+  private container: HTMLElement
+  private interactionDiv: HTMLElement | null = null;
 
-  constructor(container: HTMLElement) { // Modified constructor
+  constructor(container: HTMLElement) {
     this.container = container
   }
 
@@ -18,125 +24,149 @@ export class InteractionManager {
     console.log('Loading interactions:', interactions);
   }
 
-  /**
-   * Register a callback to handle user prompts.
-   * This is typically where you render UI.
-   */
   public onPrompt(handler: InteractionHandler) {
     this.onPromptCallback = handler
   }
 
-  /**
-   * Register a callback to receive user responses.
-   */
   public onResponse(handler: ResponseHandler) {
     this.onResponseCallback = handler
   }
 
-  /**
-   * Called when a cue is reached that includes an interaction.
-   */
   public handleInteractionCue(cue: Cue) {
     const payload = cue.payload?.interaction as InteractionPayload | undefined
 
     if (payload) {
-      // Execute the onPrompt callback first, allowing external logic to run before rendering.
       if (this.onPromptCallback) {
         this.onPromptCallback(payload, cue)
       }
-      this.renderInteraction(payload, cue) // Call renderInteraction
+      this.renderInteraction(payload, cue)
     }
   }
 
-  /**
-   * Renders the interaction UI directly into the container.
-   * This is a placeholder implementation.
-   */
   private renderInteraction(payload: InteractionPayload, cue: Cue): void {
-    this.clearInteractions(); // Clear previous interactions if any
+    this.clearInteractions();
 
-    const interactionDiv = document.createElement('div');
-    interactionDiv.className = 'ivl-interaction-overlay'; // Add a class for styling
+    this.interactionDiv = document.createElement('div');
+    this.interactionDiv.className = 'ivl-interaction-overlay';
 
-    let content = `<h3>${payload.title || 'Interaction'}</h3>`;
+    const title = document.createElement('h3');
+    title.textContent = payload.title || 'Interaction';
+    this.interactionDiv.appendChild(title);
+
     if (payload.description) {
-      content += `<p>${payload.description}</p>`;
+      const description = document.createElement('p');
+      description.textContent = payload.description;
+      this.interactionDiv.appendChild(description);
     }
 
     switch (payload.type) {
       case 'choice':
-        content += `<p>${payload.question}</p>`;
-        payload.options?.forEach((option: string) => {
-          content += `<button class="ivl-choice-button" data-response="${option}">${option}</button>`;
-        });
+        this.renderChoiceInteraction(payload, cue);
         break;
       case 'text':
-        content += `<p>${payload.question}</p>`;
-        content += `<input type="text" id="ivl-text-input" placeholder="Enter your response">`;
-        content += `<button id="ivl-submit-button">Submit</button>`;
+        this.renderTextInteraction(payload, cue);
         break;
       default:
-        content += `<p>${payload.question || 'Respond to the interaction.'}</p>`;
-        content += `<button id="ivl-interaction-button">Respond</button>`;
+        this.renderDefaultInteraction(payload, cue);
         break;
     }
 
-    interactionDiv.innerHTML = content;
-    this.container.appendChild(interactionDiv);
-
-    // Add event listeners based on interaction type
-    switch (payload.type) {
-      case 'choice':
-        interactionDiv.querySelectorAll('.ivl-choice-button').forEach(button => {
-          button.addEventListener('click', (event) => {
-            console.log('Choice button clicked!');
-            const response = (event.target as HTMLButtonElement).dataset.response;
-            if (response) {
-              this.handleUserResponse(response, cue);
-              this.clearInteractions();
-            }
-          });
-        });
-        break;
-      case 'text':
-        const submitButton = interactionDiv.querySelector('#ivl-submit-button');
-        const textInput = interactionDiv.querySelector('#ivl-text-input') as HTMLInputElement;
-        if (submitButton && textInput) {
-          submitButton.addEventListener('click', () => {
-            console.log('Submit button clicked!');
-            const response = textInput.value;
-            this.handleUserResponse(response, cue);
-            this.clearInteractions();
-          });
-        }
-        break;
-      default:
-        const button = interactionDiv.querySelector('#ivl-interaction-button');
-        if (button) {
-          button.addEventListener('click', () => {
-            console.log('Default interaction button clicked!');
-            this.handleUserResponse('User responded!', cue);
-            this.clearInteractions();
-          });
-        }
-        break;
-    }
+    this.container.appendChild(this.interactionDiv);
   }
 
-  /**
-   * Clears any active interactions from the container.
-   */
+  private renderChoiceInteraction(payload: InteractionPayload, cue: Cue): void {
+    if (!this.interactionDiv) return;
+
+    if (payload.question) {
+        const question = document.createElement('p');
+        question.textContent = payload.question;
+        this.interactionDiv.appendChild(question);
+    }
+
+    const buttonContainer = document.createElement('div');
+    buttonContainer.className = 'ivl-choice-buttons';
+
+    payload.options?.forEach((option: string) => {
+      const button = document.createElement('button');
+      button.className = 'ivl-choice-button';
+      button.dataset.response = option;
+      button.textContent = option;
+      buttonContainer.appendChild(button);
+    });
+
+    this.interactionDiv.appendChild(buttonContainer);
+
+    buttonContainer.addEventListener('click', (event) => {
+      const target = event.target as HTMLButtonElement;
+      if (target.matches('.ivl-choice-button')) {
+        console.log('Choice button clicked!');
+        const response = target.dataset.response;
+        if (response) {
+          this.handleUserResponse(response, cue);
+          this.clearInteractions();
+        }
+      }
+    });
+  }
+
+  private renderTextInteraction(payload: InteractionPayload, cue: Cue): void {
+    if (!this.interactionDiv) return;
+
+    if (payload.question) {
+        const question = document.createElement('p');
+        question.textContent = payload.question;
+        this.interactionDiv.appendChild(question);
+    }
+
+    const textInput = document.createElement('input');
+    textInput.type = 'text';
+    textInput.id = 'ivl-text-input';
+    textInput.placeholder = 'Enter your response';
+    this.interactionDiv.appendChild(textInput);
+
+    const submitButton = document.createElement('button');
+    submitButton.id = 'ivl-submit-button';
+    submitButton.textContent = 'Submit';
+    this.interactionDiv.appendChild(submitButton);
+
+    submitButton.addEventListener('click', () => {
+      console.log('Submit button clicked!');
+      const response = textInput.value;
+      this.handleUserResponse(response, cue);
+      this.clearInteractions();
+    });
+  }
+
+  private renderDefaultInteraction(payload: InteractionPayload, cue: Cue): void {
+    if (!this.interactionDiv) return;
+
+    if (payload.question) {
+        const question = document.createElement('p');
+        question.textContent = payload.question;
+        this.interactionDiv.appendChild(question);
+    }
+
+    const button = document.createElement('button');
+    button.id = 'ivl-interaction-button';
+    button.textContent = 'Respond';
+    this.interactionDiv.appendChild(button);
+
+    button.addEventListener('click', () => {
+      console.log('Default interaction button clicked!');
+      this.handleUserResponse('User responded!', cue);
+      this.clearInteractions();
+    });
+  }
+
   private clearInteractions(): void {
-    console.log('Clearing interactions.')
-    const existingInteractions = this.container.querySelectorAll('.ivl-interaction-overlay')
-    existingInteractions.forEach(el => el.remove())
+    console.log('Clearing interactions.');
+    if (this.interactionDiv) {
+        this.interactionDiv.remove();
+        this.interactionDiv = null;
+    }
   }
 
-  /**
-   * Called when user submits a response to the current interaction.
-   */
   public handleUserResponse(response: any, cue: Cue) {
-    console.log('handleUserResponse called with response:', response, 'and cue:', cue)
     if (this.onResponseCallback) {
       console.log('Calling onResponseCallback...');
       this.onResponseCallback(response, cue)
@@ -146,6 +176,6 @@ export class InteractionManager {
   public destroy() {
     this.onPromptCallback = undefined
     this.onResponseCallback = undefined
-    this.clearInteractions() // Clear interactions on destroy
+    this.clearInteractions()
   }
 }

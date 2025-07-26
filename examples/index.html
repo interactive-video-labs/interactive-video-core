@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -15,17 +16,19 @@
             margin: 0;
             background-color: #f0f0f0;
         }
+
         .ivl-player-container {
             position: relative;
             max-width: 800px;
             width: 100%;
             border: 1px solid #ccc;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
         }
 
         video {
             width: 100%;
-            display: block; /* Remove extra space below video */
+            display: block;
+            /* Remove extra space below video */
         }
 
         .ivl-interaction-overlay {
@@ -70,18 +73,21 @@
             max-width: 800px;
             width: 100%;
             border: 1px solid #ccc;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
         }
+
         .controls {
             margin-top: 20px;
             display: flex;
             gap: 10px;
         }
+
         button {
             padding: 10px 20px;
             font-size: 16px;
             cursor: pointer;
         }
+
         #log {
             margin-top: 20px;
             width: 80%;
@@ -89,12 +95,13 @@
             background-color: #fff;
             border: 1px solid #eee;
             padding: 15px;
-            box-shadow: 0 0 5px rgba(0,0,0,0.05);
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.05);
             max-height: 200px;
             overflow-y: auto;
         }
     </style>
 </head>
+
 <body>
     <h1>IVLabs Player Example</h1>
     <div id="player-container"></div>
@@ -145,6 +152,7 @@
 
         player.interactionManager.onResponse((response, cue) => {
             log(`Interaction Response: ${response} (Cue: ${cue.id})`);
+            player.play(); // Resume playback
             // After interaction, transition back to playing (if player supports it)
             // This part depends on how you design your state machine and player logic
             // For this example, we'll just log it.
@@ -169,4 +177,5 @@
         log('IVLabsPlayer initialized.');
     </script>
 </body>
+
 </html>
