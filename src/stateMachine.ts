@@ -7,6 +7,12 @@ export type StateTransition<S extends string> = {
   action?: () => void
 }
 
+/**
+ * Manages state transitions for the player.
+ * This class provides a generic state machine implementation that allows
+ * defining states, transitions between them, and actions to be performed
+ * during transitions.
+ */
 export class StateMachine<S extends string = PlayerState> {
   private currentState: S
   private transitions: StateTransition<S>[] = []
