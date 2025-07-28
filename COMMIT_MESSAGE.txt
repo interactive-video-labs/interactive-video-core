@@ -1,8 +1,0 @@
-feat: Implement Semantic Release with GitHub Actions
-
-This commit introduces automated releases using Semantic Release via a new GitHub Actions workflow.
-
-- A new workflow file `.github/workflows/release.yml` has been created to handle the release process.
-- The old `publish.yml` workflow has been removed as its functionality is now covered by Semantic Release.
-
-This change streamlines the release process and ensures consistent versioning and changelog generation.
