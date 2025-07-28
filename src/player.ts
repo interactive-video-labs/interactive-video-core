@@ -137,21 +137,7 @@ export class IVLabsPlayer {
     this.videoElement.pause()
   }
 
-  /**
-   * Replaces the main video with a new video source.
-   * @param newVideoUrl - The URL of the new video to load.
-   * @param startTime - Optional: The time in seconds to start the new video from. Defaults to 0.
-   */
-  public replaceMainVideo(newVideoUrl: string, startTime: number = 0): void {
-    this.videoElement.pause();
-    this.videoElement.src = newVideoUrl;
-    this.videoElement.currentTime = startTime;
-    this.videoElement.load();
-    this.videoElement.play().catch(error => {
-      console.error('Error playing new main video:', error);
-    });
-    
-  }
+
 
   /** Cleans up the player, removes listeners and resets state. */
   public destroy(): void {
