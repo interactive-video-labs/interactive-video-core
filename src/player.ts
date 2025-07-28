@@ -110,6 +110,10 @@ export class IVLabsPlayer {
     this.videoElement.addEventListener('pause', () => {
       this.analytics.track('VIDEO_PAUSED')
     })
+
+    this.videoElement.addEventListener('ended', () => {
+      this.analytics.track('VIDEO_ENDED')
+    })
   }
 
   /** Loads cue points into the player. */
