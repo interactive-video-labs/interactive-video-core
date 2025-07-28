@@ -1,8 +1,9 @@
-import { CuePoint as Cue } from './types'
-import { InteractionPayload } from './types'
+import { ChoiceVideoSegmentChangeOption, CuePoint as Cue } from './types';
+import { InteractionPayload } from './types';
 
-type InteractionHandler = (payload: InteractionPayload, cue: Cue) => void
-type ResponseHandler = (response: any, cue: Cue) => void
+type InteractionHandler = (payload: InteractionPayload, cue: Cue) => void;
+type ResponseHandler = (response: any, cue: Cue) => void;
+type InteractionRenderer = (payload: InteractionPayload, cue: Cue) => void;
 
 /**
  * Manages the lifecycle of interactions within the player.
@@ -10,75 +11,87 @@ type ResponseHandler = (response: any, cue: Cue) => void
  * and communicating with the parent application.
  */
 export class InteractionManager {
-  private onPromptCallback?: InteractionHandler
-  private onResponseCallback?: ResponseHandler
-  private container: HTMLElement
+  private onPromptCallback?: InteractionHandler;
+  private onResponseCallback?: ResponseHandler;
+  private container: HTMLElement;
   private interactionDiv: HTMLElement | null = null;
-
+  private interactionRenderers: Record<string, InteractionRenderer>;
+  private interactionStore: Map<number, Cue>;
 
   /**
    * Creates an instance of InteractionManager.
    * @param container - The container element where interactions will be rendered.
    */
   constructor(container: HTMLElement) {
-    this.container = container
+    this.container = container;
+    this.interactionStore = new Map();
+
+    this.interactionRenderers = {
+      'choice': this.renderChoiceInteraction.bind(this),
+      'text': this.renderTextInteraction.bind(this),
+      'choice-video-segment-change': this.renderChoiceInteraction.bind(this),
+      'default': this.renderDefaultInteraction.bind(this),
+    };
   }
 
   /**
-   * Loads interactions from a given source.
-   * @param interactions - An array of interaction objects to be loaded.
+   * Determines if the options array contains only strings.
+   * @param options - Array of options to check.
+   * @returns True if the array consists of strings only.
    */
-  public loadInteractions(interactions: any[]) {
-    // TODO: Implement interaction loading logic
-    console.log('Loading interactions:', interactions);
+  private _isStringOptions(options: (string | ChoiceVideoSegmentChangeOption)[] | undefined): options is string[] {
+    return Array.isArray(options) && options.length > 0 && typeof options[0] === 'string';
   }
 
+  /**
+   * Loads interactions from a given array of cue points.
+   * Stores them internally mapped by cue time.
+   * @param interactions - An array of interaction cue objects to be loaded.
+   */
+  public loadInteractions(interactions: Cue[]) {
+    interactions.forEach((cue) => {
+      if (cue.time != null && cue.payload?.interaction) {
+        this.interactionStore.set(cue.time, cue);
+      }
+    });
+    console.log('Interactions loaded into store:', this.interactionStore);
+  }
 
   /**
-   * Registers handlers for interaction prompts and responses.
-   * @param handler - The function to be called when an interaction prompt is triggered.
+   * Registers a callback for when an interaction prompt is triggered.
+   * @param handler - The function to call on interaction prompt.
    */
   public onPrompt(handler: InteractionHandler) {
-    this.onPromptCallback = handler
+    this.onPromptCallback = handler;
   }
 
-
   /**
-   * Registers a callback function to be invoked when a response event occurs.
-   *
-   * @param handler - The function to handle the response event.
+   * Registers a callback for when a user responds to an interaction.
+   * @param handler - The function to call on user response.
    */
   public onResponse(handler: ResponseHandler) {
-    this.onResponseCallback = handler
+    this.onResponseCallback = handler;
   }
 
-
   /**
-   * Handles an interaction cue by rendering the interaction and invoking the prompt callback.
-   * @param cue - The cue point that triggered the interaction.
+   * Handles an interaction cue by rendering it and invoking the prompt handler.
+   * @param cue - Cue containing interaction metadata.
    */
   public handleInteractionCue(cue: Cue) {
-    const payload = cue.payload?.interaction as InteractionPayload | undefined
-
+    const payload = cue.payload?.interaction as InteractionPayload | undefined;
     if (payload) {
       if (this.onPromptCallback) {
-        this.onPromptCallback(payload, cue)
+        this.onPromptCallback(payload, cue);
       }
-      this.renderInteraction(payload, cue)
+      this.renderInteraction(payload, cue);
     }
   }
 
-
   /**
-   * Renders the interaction based on the provided payload and cue.
-   * This method creates the necessary HTML elements to display the interaction
-   * and appends them to the container.
-   * @param payload - The interaction payload containing details about the interaction.
-   * @param cue - The cue point associated with the interaction.
+   * Renders the interaction UI based on type and cue.
    */
   private renderInteraction(payload: InteractionPayload, cue: Cue): void {
     this.clearInteractions();
-
     this.interactionDiv = document.createElement('div');
     this.interactionDiv.className = 'ivl-interaction-overlay';
 
@@ -92,54 +105,51 @@ export class InteractionManager {
       this.interactionDiv.appendChild(description);
     }
 
-    switch (payload.type) {
-      case 'choice':
-        this.renderChoiceInteraction(payload, cue);
-        break;
-      case 'text':
-        this.renderTextInteraction(payload, cue);
-        break;
-      default:
-        this.renderDefaultInteraction(payload, cue);
-        break;
-    }
+    const renderer = this.interactionRenderers[payload.type] || this.interactionRenderers['default'];
+    renderer(payload, cue);
 
     this.container.appendChild(this.interactionDiv);
   }
 
-
   /**
-   * Renders a choice interaction based on the provided payload and cue.
-   * This method creates buttons for each choice option and appends them to the interaction div.
-   * @param payload - The interaction payload containing choice options.
-   * @param cue - The cue point associated with the interaction.
+   * Renders choice-based interactions.
    */
   private renderChoiceInteraction(payload: InteractionPayload, cue: Cue): void {
     if (!this.interactionDiv) return;
 
     if (payload.question) {
-        const question = document.createElement('p');
-        question.textContent = payload.question;
-        this.interactionDiv.appendChild(question);
+      const question = document.createElement('p');
+      question.textContent = payload.question;
+      this.interactionDiv.appendChild(question);
     }
 
     const buttonContainer = document.createElement('div');
     buttonContainer.className = 'ivl-choice-buttons';
 
-    payload.options?.forEach((option: string) => {
-      const button = document.createElement('button');
-      button.className = 'ivl-choice-button';
-      button.dataset.response = option;
-      button.textContent = option;
-      buttonContainer.appendChild(button);
-    });
+    if (this._isStringOptions(payload.options)) {
+      for (const option of payload.options) {
+        const button = document.createElement('button');
+        button.className = 'ivl-choice-button';
+        button.dataset.response = option;
+        button.textContent = option;
+        buttonContainer.appendChild(button);
+      }
+    } else if (payload.options) {
+      const choiceOptions = payload.options as ChoiceVideoSegmentChangeOption[];
+      for (const option of choiceOptions) {
+        const button = document.createElement('button');
+        button.className = 'ivl-choice-button';
+        button.dataset.response = option.video;
+        button.textContent = option.level;
+        buttonContainer.appendChild(button);
+      }
+    }
 
     this.interactionDiv.appendChild(buttonContainer);
 
     buttonContainer.addEventListener('click', (event) => {
       const target = event.target as HTMLButtonElement;
       if (target.matches('.ivl-choice-button')) {
-        console.log('Choice button clicked!');
         const response = target.dataset.response;
         if (response) {
           this.handleUserResponse(response, cue);
@@ -149,20 +159,16 @@ export class InteractionManager {
     });
   }
 
-
   /**
-   * Renders a text interaction based on the provided payload and cue.
-   * This method creates an input field for user text input and a submit button.
-   * @param payload - The interaction payload containing the question and other details.
-   * @param cue - The cue point associated with the interaction.
+   * Renders text-based interactions.
    */
   private renderTextInteraction(payload: InteractionPayload, cue: Cue): void {
     if (!this.interactionDiv) return;
 
     if (payload.question) {
-        const question = document.createElement('p');
-        question.textContent = payload.question;
-        this.interactionDiv.appendChild(question);
+      const question = document.createElement('p');
+      question.textContent = payload.question;
+      this.interactionDiv.appendChild(question);
     }
 
     const textInput = document.createElement('input');
@@ -177,27 +183,22 @@ export class InteractionManager {
     this.interactionDiv.appendChild(submitButton);
 
     submitButton.addEventListener('click', () => {
-      console.log('Submit button clicked!');
       const response = textInput.value;
       this.handleUserResponse(response, cue);
       this.clearInteractions();
     });
   }
 
-
   /**
-   * Renders a default interaction if no specific type is provided.
-   * This method creates a simple interaction with a button to respond.
-   * @param payload - The interaction payload containing the question and other details.
-   * @param cue - The cue point associated with the interaction.
+   * Renders default interaction fallback.
    */
   private renderDefaultInteraction(payload: InteractionPayload, cue: Cue): void {
     if (!this.interactionDiv) return;
 
     if (payload.question) {
-        const question = document.createElement('p');
-        question.textContent = payload.question;
-        this.interactionDiv.appendChild(question);
+      const question = document.createElement('p');
+      question.textContent = payload.question;
+      this.interactionDiv.appendChild(question);
     }
 
     const button = document.createElement('button');
@@ -206,46 +207,44 @@ export class InteractionManager {
     this.interactionDiv.appendChild(button);
 
     button.addEventListener('click', () => {
-      console.log('Default interaction button clicked!');
       this.handleUserResponse('User responded!', cue);
       this.clearInteractions();
     });
   }
 
-
   /**
-   * Clears the current interactions from the container.
-   * This method removes the interaction div and resets it to null.
+   * Clears currently rendered interaction UI.
    */
   private clearInteractions(): void {
-    console.log('Clearing interactions.');
     if (this.interactionDiv) {
-        this.interactionDiv.remove();
-        this.interactionDiv = null;
+      this.interactionDiv.remove();
+      this.interactionDiv = null;
     }
   }
 
-
   /**
-   * Handles the user response by invoking the registered response callback.
-   * @param response - The user's response to the interaction.
-   * @param cue - The cue point associated with the interaction.
+   * Invokes the response handler with processed data.
    */
   public handleUserResponse(response: any, cue: Cue) {
     if (this.onResponseCallback) {
-      console.log('Calling onResponseCallback...');
-      this.onResponseCallback(response, cue)
+      const interactionPayload = cue.payload?.interaction as InteractionPayload | undefined;
+      if (interactionPayload?.type === 'choice-video-segment-change') {
+        this.onResponseCallback({ nextSegment: response }, cue);
+      } else if (interactionPayload?.response?.[response]) {
+        this.onResponseCallback(interactionPayload.response[response], cue);
+      } else {
+        this.onResponseCallback(response, cue);
+      }
     }
   }
 
-
   /**
-   * Destroys the InteractionManager instance.
-   * This method clears the interaction callbacks and removes any rendered interactions.
+   * Destroys the manager and clears memory.
    */
   public destroy() {
-    this.onPromptCallback = undefined
-    this.onResponseCallback = undefined
-    this.clearInteractions()
+    this.onPromptCallback = undefined;
+    this.onResponseCallback = undefined;
+    this.clearInteractions();
+    this.interactionStore.clear();
   }
 }
