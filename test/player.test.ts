@@ -104,7 +104,8 @@ describe('IVLabsPlayer', () => {
       // Extract event listener callbacks
       playCallback = (videoElement.addEventListener as vi.Mock).mock.calls.find(call => call[0] === 'play')[1];
       pauseCallback = (videoElement.addEventListener as vi.Mock).mock.calls.find(call => call[0] === 'pause')[1];
-      endedCallback = (videoElement.addEventListener as vi.Mock).mock.calls.find(call => call[0] === 'ended')[1];
+      const endedCalls = (videoElement.addEventListener as vi.Mock).mock.calls.filter(call => call[0] === 'ended');
+      endedCallback = endedCalls[endedCalls.length - 1][1];
     });
 
     it('should bind video events', () => {
