@@ -2,6 +2,9 @@ import { StateMachine } from './stateMachine'
 import { CueHandler } from './cueHandler'
 import { InteractionManager } from './interactionManager'
 import { Analytics } from './analytics'
+import { SegmentManager } from './segmentManager'
+
+
 
 import type {
   PlayerConfig,
@@ -9,8 +12,10 @@ import type {
   InteractionSegment,
   AnalyticsEvent,
   PlayerState,
-  InteractionPayload
+  InteractionPayload,
+  HTMLVideoElementWithControlsList
 } from './types'
+
 
 /**
  * The main class for the Interactive Video Labs Player.
@@ -18,43 +23,29 @@ import type {
  * and analytics tracking.
  */
 export class IVLabsPlayer {
-  private videoElement: HTMLVideoElement
+  private videoElement: HTMLVideoElementWithControlsList
   private config: PlayerConfig
   private stateMachine: StateMachine
   private cueHandler: CueHandler
   private interactionManager: InteractionManager
   private analytics: Analytics
+  private segmentManager: SegmentManager
 
-  private videoContainer: HTMLElement 
+  private videoContainer: HTMLElement
 
-
-  /**
-   * Creates an instance of IVLabsPlayer.
-   * @param target - The ID of the HTML element where the player will be rendered.
-   * @param config - Configuration options for the player, including video URL, initial state, and cues.
-   */
   constructor(target: string, config: PlayerConfig) {
     const targetElement = document.getElementById(target)
-
-    if (!targetElement) {
-      throw new Error(`Target container with ID "${target}" not found.`)
-    }
+    if (!targetElement) throw new Error(`Target container with ID "${target}" not found.`)
 
     this.config = config
-
-    // Create a container for the video and interactions
     this.videoContainer = document.createElement('div')
     this.videoContainer.className = 'ivl-player-container'
 
-    // Create the video element
-    this.videoElement = document.createElement('video')
-    this.videoElement.src = this.config.videoUrl
+    this.videoElement = document.createElement('video') as HTMLVideoElementWithControlsList
     this.videoElement.controls = true
+    this.videoElement.controlsList = 'nodownload'
 
-    // Add video to its container
     this.videoContainer.appendChild(this.videoElement)
-
-    // Clear the target element and append the player
     targetElement.innerHTML = ''
     targetElement.appendChild(this.videoContainer)
 
@@ -63,36 +54,53 @@ export class IVLabsPlayer {
     this.interactionManager = new InteractionManager(this.videoContainer)
     this.cueHandler = new CueHandler(this.videoElement)
     this.cueHandler.registerCues(config.cues || [])
+    this.segmentManager = new SegmentManager(this.videoElement)
+
+    if (!config.videoUrl) throw new Error('videoUrl must be provided in the PlayerConfig.')
+    this.videoElement.src = config.videoUrl
 
     this.bindEvents()
     this.cueHandler.start()
   }
 
   /**
-   * Binds event listeners for cue handling, interaction management, and analytics tracking.
-   * This method sets up the necessary callbacks to handle user interactions and video events.
+   * Binds event listeners for cue handling, interaction response, and analytics.
    */
   private bindEvents(): void {
     this.cueHandler.onCue((cue: CuePoint) => {
-      if (cue.payload && cue.payload.interaction) {
-        this.videoElement.pause() // Pause the video on interaction
-        this.stateMachine.transitionTo('waitingForInteraction') // Adjust as needed
+      if (cue.payload?.interaction) {
+        this.videoElement.pause()
+        this.stateMachine.transitionTo('waitingForInteraction')
         this.interactionManager.handleInteractionCue(cue)
         this.analytics.track('CUE_TRIGGERED', { event: 'CUE_TRIGGERED', cueId: cue.id, timestamp: Date.now() })
       } else {
-        // If it's not an interaction cue, just track it and continue playing
         this.analytics.track('CUE_TRIGGERED', { event: 'CUE_TRIGGERED', cueId: cue.id, timestamp: Date.now() })
         this.stateMachine.transitionTo('playing')
       }
     })
 
+
     this.interactionManager.onResponse((response: any, cue: CuePoint) => {
-      this.videoElement.play().catch(error => {
-        console.error('Video playback failed:', error)
-      })
+      if (response && response.nextSegment) {
+        this.segmentManager.playSegment(response.nextSegment);
+      } else {
+        this.videoElement.play().catch(error => {
+          console.error('Video playback failed:', error)
+        })
+      }
       console.log('Interaction response received: inside interaction manager :', response)
       this.stateMachine.transitionTo('playing')
       this.analytics.track('INTERACTION_COMPLETED', { event: 'INTERACTION_COMPLETED', cueId: cue.id, data: { response: response }, timestamp: Date.now() })
+  
+
+      console.log('Interaction response received:', response)
+      this.stateMachine.transitionTo('playing')
+      this.analytics.track('INTERACTION_COMPLETED', {
+        event: 'INTERACTION_COMPLETED',
+        cueId: cue.id,
+        data: { response },
+        timestamp: Date.now(),
+      })
     })
 
     this.videoElement.addEventListener('play', () => {
@@ -102,62 +110,52 @@ export class IVLabsPlayer {
     this.videoElement.addEventListener('pause', () => {
       this.analytics.track('VIDEO_PAUSED')
     })
-
-    this.videoElement.addEventListener('ended', () => {
-      this.analytics.track('VIDEO_ENDED')
-    })
   }
 
-
-  /**
-   * Loads cue points into the player.
-   * @param cues - An array of cue points to be loaded.
-   */
+  /** Loads cue points into the player. */
   public loadCues(cues: CuePoint[]): void {
     this.cueHandler.loadCues(cues)
   }
 
-
-  /**
-   * Loads interactions into the player.
-   * @param interactions - An array of interaction segments to be loaded.
-   */
-  public loadInteractions(interactions: InteractionPayload[]): void {
+  /** Loads interaction segments into the player. */
+  public loadInteractions(interactions: CuePoint[]): void {
     this.interactionManager.loadInteractions(interactions)
   }
 
-
-  /**
-   * Gets the current state of the player.
-   * @returns The current player state.
-   */
+  /** Returns the current player state. */
   public getState(): PlayerState {
     return this.stateMachine.getState()
   }
 
-
-  /**
-   * Plays the video.
-   */
+  /** Plays the video. */
   public play(): void {
     this.videoElement.play()
   }
 
-
-  /**
-   * Pauses the video.
-   */
+  /** Pauses the video. */
   public pause(): void {
     this.videoElement.pause()
   }
 
-
   /**
-   * Destroys the player.
-   * This method cleans up resources, removes event listeners, and resets the player state.
+   * Replaces the main video with a new video source.
+   * @param newVideoUrl - The URL of the new video to load.
+   * @param startTime - Optional: The time in seconds to start the new video from. Defaults to 0.
    */
+  public replaceMainVideo(newVideoUrl: string, startTime: number = 0): void {
+    this.videoElement.pause();
+    this.videoElement.src = newVideoUrl;
+    this.videoElement.currentTime = startTime;
+    this.videoElement.load();
+    this.videoElement.play().catch(error => {
+      console.error('Error playing new main video:', error);
+    });
+    
+  }
+
+  /** Cleans up the player, removes listeners and resets state. */
   public destroy(): void {
-    console.log('IVLabsPlayer destroy() called.');
+    console.log('IVLabsPlayer destroy() called.')
     this.cueHandler.destroy()
     this.interactionManager.destroy()
     this.analytics.track('PLAYER_DESTROYED')

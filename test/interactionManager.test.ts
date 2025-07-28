@@ -115,7 +115,7 @@ describe('InteractionManager', () => {
     const consoleSpy = vi.spyOn(console, 'log');
     const interactions = [{ id: 'int1' }, { id: 'int2' }];
     interactionManager.loadInteractions(interactions);
-    expect(consoleSpy).toHaveBeenCalledWith('Loading interactions:', interactions);
+    expect(consoleSpy).toHaveBeenCalledWith('Interactions loaded into store:', expect.any(Map));
     consoleSpy.mockRestore();
   });
 });

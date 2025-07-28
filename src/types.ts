@@ -1,4 +1,3 @@
-
 /**
  * Interactive Video Labs Player Types
  * This file defines the types and interfaces used in the IVLabsPlayer.
@@ -8,7 +7,7 @@
 
 
 export type PlayerConfig = {
-  videoUrl: string
+  videoUrl?: string
   cues?: CuePoint[]
   subtitlesUrl?: string
   localization?: LocalizationStrings
@@ -61,13 +60,19 @@ export interface AnalyticsHook {
   (payload: AnalyticsPayload): void
 }
 
+export type ChoiceVideoSegmentChangeOption = {
+  level: string
+  video: string
+}
+
 export type InteractionPayload = {
-  type: 'choice' | 'text' | 'rating'
+  type: 'choice' | 'text' | 'rating' | 'choice-video-segment-change'
   title?: string
   description?: string
   question: string
-  options?: string[]
+  options?: string[] | ChoiceVideoSegmentChangeOption[]
   correctAnswer?: string
+  response?: Record<string, any>
 }
 
 export type PlayerEvent =
@@ -78,6 +83,7 @@ export type PlayerEvent =
   | 'interaction'
   | 'branch'
   | 'error'
+  | 'segmentchange'
 
 
 export type InteractionSegment = {
@@ -88,3 +94,7 @@ export type InteractionSegment = {
 }
 
 export type PlayerState = 'idle' | 'playing' | 'waitingForInteraction' | 'ended' | 'error'
+
+export interface HTMLVideoElementWithControlsList extends HTMLVideoElement {
+  controlsList: string;
+}
