@@ -1,5 +1,28 @@
 # Changelog
 
+
+
+## v0.0.2 2025 07 28
+
+
+### Features
+*   Automate versioning and publishing with semantic-release
+*   Add GitHub Actions workflow for running tests
+*   Implement video segment branching and interaction improvements
+*   Update pnpm-lock.yaml with jsdom dependency and remove optional flags
+
+### Fixes
+*   Ensure VIDEO_ENDED event is tracked
+
+### Chore
+*   Exclude test directory from compilation
+
+### Docs
+*   Changelog date format standardized
+
+
+
+
 ## v0.0.1 2025 07 26
 
 

@@ -1,4 +1,4 @@
-name: Publish to NPM
+name: Release
 
 on:
   push:
@@ -7,27 +7,19 @@ on:
 
 jobs:
   release:
+    name: release
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v4
         with:
-          persist-credentials: false
-          fetch-depth: 0 # Required for semantic-release to analyze all commits
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v3
-        with:
-          version: 8
-          run_install: false
+          fetch-depth: 0 # Required to retrieve all commits history
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '18'
           cache: 'pnpm'
-          registry-url: 'https://registry.npmjs.org/'
 
       - name: Install dependencies
         run: pnpm install --no-frozen-lockfile
@@ -39,7 +31,7 @@ jobs:
         run: pnpm test
 
       - name: Semantic Release
-        run: npx semantic-release
+        uses: cycjimmy/semantic-release-action@v3
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
