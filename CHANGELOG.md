@@ -3,7 +3,7 @@
 
 ## v0.1.0 2025 07 29
 
-
+Initial stable release candidate
 
 ## v0.0.4 2025 07 29
 
