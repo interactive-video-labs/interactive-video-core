@@ -1,6 +1,21 @@
 # Changelog
 
 
+## v0.0.4 2025 07 29
+
+
+### Features
+*   Improve README and example usage
+*   Add files via upload
+
+### Fixes
+*   Standardize pnpm version in GitHub Actions
+
+### CI
+*   Update release.yml
+
+
+
 
 ## v0.0.2 2025 07 28
 
