@@ -17,7 +17,7 @@ import type {
   AnalyticsPayload,
   DecisionAdapter,
 } from './types';
-import { InMemoryDecisionAdapter } from './decisionAdapter';
+import { InMemoryDecisionAdapter } from './InMemoryDecisionAdapter';
 import { LocalStorageDecisionAdapter } from './localStorageDecisionAdapter';
 
 /**
