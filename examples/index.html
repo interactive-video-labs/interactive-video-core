@@ -230,8 +230,12 @@
 
         document.getElementById('getDecisionHistory').addEventListener('click', async () => {
             if (player) {
-                const history = await player.getDecisionHistory();
-                log(`Decision History: ${JSON.stringify(history, null, 2)}`);
+                try {
+                    const history = await player.getDecisionHistory();
+                    log(`Decision History: ${JSON.stringify(history, null, 2)}`);
+                } catch (error) {
+                    log(`Error getting decision history: ${error.message}`);
+                }
             } else {
                 log('Player not initialized.');
             }
