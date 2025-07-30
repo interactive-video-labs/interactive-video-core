@@ -12,9 +12,14 @@ export class LocalStorageDecisionAdapter implements DecisionAdapter {
    * @param decision - The decision to save.
    */
   async saveDecision(decision: Decision): Promise<void> {
-    const history = await this.getDecisionHistory();
-    history.push(decision);
-    localStorage.setItem(this.STORAGE_KEY, JSON.stringify(history));
+    try {
+      const history = await this.getDecisionHistory();
+      history.push(decision);
+      localStorage.setItem(this.STORAGE_KEY, JSON.stringify(history));
+    } catch (error) {
+      console.error('Failed to save decision to localStorage:', error);
+      throw new Error('Decision storage failed');
+    }
   }
 
   /**
@@ -22,14 +27,25 @@ export class LocalStorageDecisionAdapter implements DecisionAdapter {
    * @returns A promise that resolves to an array of decisions.
    */
   async getDecisionHistory(): Promise<Decision[]> {
-    const history = localStorage.getItem(this.STORAGE_KEY);
-    return history ? JSON.parse(history) : [];
+    try {
+      const history = localStorage.getItem(this.STORAGE_KEY);
+      return history ? JSON.parse(history) : [];
+    } catch (error) {
+      console.error('Failed to get decision history from localStorage:', error);
+      throw new Error('Decision retrieval failed');
+    }
+  
   }
 
   /**
    * Clears the decision history in local storage.
    */
-  async clearDecisionHistory(): Promise<void> {
-    localStorage.removeItem(this.STORAGE_KEY);
-  }
+ async clearDecisionHistory(): Promise<void> {  
+    try {  
+      localStorage.removeItem(this.STORAGE_KEY);  
+    } catch (error) {  
+      console.error('Failed to clear decision history from localStorage:', error);  
+      throw new Error('Failed to clear decision history');  
+    }  
+  }  
 }

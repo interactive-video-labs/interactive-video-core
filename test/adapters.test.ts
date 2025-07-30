@@ -11,17 +11,17 @@ describe('InMemoryDecisionAdapter', () => {
   });
 
   it('should save and retrieve decisions', async () => {
-    const decision1: Decision = {
-      cue: { id: 'cue1', startTime: 0, endTime: 10 },
-      type: 'linear',
-      time: 5,
-      reason: 'test',
-    };
+    const decision1: Decision = {  
+      cueId: 'cue1',  
+      choice: 'linear',  
+      timestamp: Date.now(),  
+      metadata: { reason: 'test' },  
+    }; 
     const decision2: Decision = {
-      cue: { id: 'cue2', startTime: 10, endTime: 20 },
-      type: 'nonlinear',
-      time: 15,
-      reason: 'test',
+      cueId: 'cue2',
+      choice: 'nonlinear',
+      timestamp: Date.now(),
+      metadata: { reason: 'test' },
     };
 
     await adapter.saveDecision(decision1);
