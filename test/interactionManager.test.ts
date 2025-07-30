@@ -45,7 +45,12 @@ describe('InteractionManager', () => {
       translate: vi.fn((key) => key),
     } as unknown as I18n;
 
-    interactionManager = new InteractionManager(mockContainer, mockI18n);
+    const mockDecisionAdapter = {
+      saveDecision: vi.fn(),
+      getDecisionHistory: vi.fn(),
+      clearDecisionHistory: vi.fn(),
+    };
+    interactionManager = new InteractionManager(mockContainer, mockI18n, mockDecisionAdapter);
     mockOnPromptCallback = vi.fn();
     mockOnResponseCallback = vi.fn();
 
