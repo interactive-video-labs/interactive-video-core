@@ -64,7 +64,9 @@ export class IVLabsPlayer {
       this.i18n.setLocale(config.locale);
     }
 
-    if (config.decisionAdapterType === 'localStorage') {
+    if (config.decisionAdapter) {
+      this.decisionAdapter = config.decisionAdapter;
+    } else if (config.decisionAdapterType === 'localStorage') {
       this.decisionAdapter = new LocalStorageDecisionAdapter();
     } else {
       this.decisionAdapter = new InMemoryDecisionAdapter();

@@ -17,6 +17,7 @@ export type PlayerConfig = {
   interactions?: InteractionPayload[];
   initialState?: PlayerState;
   decisionAdapterType?: 'memory' | 'localStorage';
+  decisionAdapter?: DecisionAdapter;
 };
 
 export type Translations = Record<string, string | Record<string, string>>;
