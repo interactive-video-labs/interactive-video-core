@@ -8,7 +8,7 @@ type AnalyticsHook = (event: AnalyticsEvent, payload?: AnalyticsPayload) => void
  * for the registration of custom hooks to process analytics data.
  */
 export class Analytics {
-  private hooks: AnalyticsHook[] = []
+  private hooks: { [key: string]: AnalyticsHook[] } = {}
 
 
   /**
@@ -24,11 +24,15 @@ export class Analytics {
 
 
   /**
-   * Registers a new analytics hook.
-   * @param hook - The function to be called when an event is tracked.
+   * Registers a new analytics hook for a specific event.
+   * @param event - The event to listen for.
+   * @param hook - The function to be called when the event is tracked.
    */
-  onTrack(hook: AnalyticsHook) {
-    this.hooks.push(hook)
+  on(event: AnalyticsEvent, hook: AnalyticsHook) {
+    if (!this.hooks[event]) {
+      this.hooks[event] = []
+    }
+    this.hooks[event].push(hook)
   }
 
 
@@ -38,7 +42,9 @@ export class Analytics {
    * @param payload - Optional data associated with the event.
    */
   track(event: AnalyticsEvent, payload?: AnalyticsPayload) {
-    this.hooks.forEach((hook) => hook(event, payload))
+    if (this.hooks[event]) {
+      this.hooks[event].forEach((hook) => hook(event, payload))
+    }
   }
 
 
@@ -46,6 +52,6 @@ export class Analytics {
    * Resets the analytics hooks.
    */
   reset() {
-    this.hooks = []
+    this.hooks = {}
   }
 }

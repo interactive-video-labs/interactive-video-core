@@ -185,7 +185,8 @@ describe('IVLabsPlayer', () => {
 
     expect(mockStateMachineInstance.transitionTo).toHaveBeenCalledWith('waitingForInteraction');
     expect(mockInteractionManagerInstance.handleInteractionCue).toHaveBeenCalledWith(mockCue);
-    expect(mockAnalyticsInstance.track).toHaveBeenCalledWith('CUE_TRIGGERED', expect.any(Object));
+    expect(mockAnalyticsInstance.track).toHaveBeenCalledWith('onCueEnter', expect.any(Object));
+    expect(mockAnalyticsInstance.track).toHaveBeenCalledWith('onPromptShown', expect.any(Object));
   });
 
   it('should load new cues via cue handler', () => {
@@ -214,6 +215,9 @@ describe('IVLabsPlayer', () => {
     player.destroy();
     expect(mockCueHandlerInstance.destroy).toHaveBeenCalledTimes(1);
     expect(mockInteractionManagerInstance.destroy).toHaveBeenCalledTimes(1);
-    expect(mockAnalyticsInstance.track).toHaveBeenCalledWith('PLAYER_DESTROYED');
+    expect(mockAnalyticsInstance.track).toHaveBeenCalledWith(
+      'onSessionEnd',
+      expect.any(Object),
+    );
   });
 });

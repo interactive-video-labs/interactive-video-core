@@ -86,6 +86,36 @@ To publish:
 pnpm publish --access public
 ```
 
+## 📊 Analytics Hook System
+
+The player includes a flexible analytics hook system that allows you to track key events in the video interaction lifecycle. You can register custom callbacks for standardized events to integrate with your own analytics services.
+
+### Standardized Events
+
+The following events are emitted by the player:
+
+-   `onCueEnter`: Fired when a cue point is reached.
+-   `onPromptShown`: Fired when an interaction prompt is displayed to the user.
+-   `onInteractionSelected`: Fired when the user makes a choice in an interaction.
+-   `onBranchJump`: Fired when the video branches to a new segment.
+-   `onSessionEnd`: Fired when the player is destroyed.
+
+### Usage
+
+To use the analytics hook system, you can register a callback for any of the standardized events using the `on` method of the player instance:
+
+```javascript
+const player = new IVLabsPlayer('player-container', config);
+
+player.on('onCueEnter', (payload) => {
+  console.log('Cue entered:', payload.cueId);
+});
+
+player.on('onInteractionSelected', (payload) => {
+  console.log('Interaction selected:', payload.data.response);
+});
+```
+
 ## 🤝 Contributing
 
 For guidelines on how to contribute to the project, please refer to the `CONTRIBUTING.md` file.

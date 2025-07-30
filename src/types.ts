@@ -48,6 +48,11 @@ export type AnalyticsEvent =
   | 'VIDEO_ENDED'
   | 'PLAYER_DESTROYED'
   | 'ERROR'
+  | 'onCueEnter'
+  | 'onPromptShown'
+  | 'onInteractionSelected'
+  | 'onBranchJump'
+  | 'onSessionEnd'
 
 export type AnalyticsPayload = {
   event: AnalyticsEvent
