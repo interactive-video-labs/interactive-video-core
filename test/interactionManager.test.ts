@@ -1,12 +1,14 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { InteractionManager } from '../src/interactionManager';
 import { CuePoint, InteractionPayload } from '../src/types';
+import { I18n } from '../src/i18n';
 
 describe('InteractionManager', () => {
   let interactionManager: InteractionManager;
   let mockOnPromptCallback: vi.Mock;
   let mockOnResponseCallback: vi.Mock;
   let mockContainer: HTMLElement;
+  let mockI18n: I18n;
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -39,7 +41,11 @@ describe('InteractionManager', () => {
       return mockElement;
     });
 
-    interactionManager = new InteractionManager(mockContainer);
+    mockI18n = {
+      translate: vi.fn((key) => key),
+    } as unknown as I18n;
+
+    interactionManager = new InteractionManager(mockContainer, mockI18n);
     mockOnPromptCallback = vi.fn();
     mockOnResponseCallback = vi.fn();
 
