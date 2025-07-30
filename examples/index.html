@@ -200,7 +200,9 @@
 
         const log = (message) => {
             console.log(message);
-            logElement.innerHTML += `<p>${message}</p>`;
+            const p = document.createElement('p');
+            p.textContent = message;        // safe – no HTML parsing  
+            logElement.appendChild(p);
             logElement.scrollTop = logElement.scrollHeight;
         };
 
