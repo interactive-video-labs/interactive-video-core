@@ -102,10 +102,6 @@ export class IVLabsPlayer {
           console.error('Video playback failed:', error);
         });
       }
-      console.log('Interaction response received: inside interaction manager :', response);
-      this.stateMachine.transitionTo('playing');
-      this.analytics.track('INTERACTION_COMPLETED', { event: 'INTERACTION_COMPLETED', cueId: cue.id, data: { response: response }, timestamp: Date.now() });
-
       console.log('Interaction response received:', response);
       this.stateMachine.transitionTo('playing');
       this.analytics.track('INTERACTION_COMPLETED', {
