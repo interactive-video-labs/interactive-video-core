@@ -1,4 +1,4 @@
-import { ChoiceVideoSegmentChangeOption, CuePoint as Cue } from './types';
+import { ChoiceVideoSegmentChangeOption, CuePoint as Cue, Decision, DecisionAdapter } from './types';
 import { InteractionPayload } from './types';
 import { I18n } from './i18n';
 
@@ -19,15 +19,17 @@ export class InteractionManager {
   private interactionRenderers: Record<string, InteractionRenderer>;
   private interactionStore: Map<number, Cue>;
   private i18n: I18n;
+  private decisionAdapter: DecisionAdapter;
 
   /**
    * Creates an instance of InteractionManager.
    * @param container - The container element where interactions will be rendered.
    * @param i18n - The I18n instance for localization.
    */
-  constructor(container: HTMLElement, i18n: I18n) {
+  constructor(container: HTMLElement, i18n: I18n, decisionAdapter: DecisionAdapter) {
     this.container = container;
     this.i18n = i18n;
+    this.decisionAdapter = decisionAdapter;
     this.interactionStore = new Map();
 
     this.interactionRenderers = {
@@ -232,6 +234,14 @@ export class InteractionManager {
   public handleUserResponse(response: any, cue: Cue) {
     if (this.onResponseCallback) {
       const interactionPayload = cue.payload?.interaction as InteractionPayload | undefined;
+      const decision: Decision = {
+        cueId: cue.id,
+        choice: response,
+        timestamp: Date.now(),
+        metadata: { interactionType: interactionPayload?.type },
+      };
+      this.decisionAdapter.saveDecision(decision);
+
       if (interactionPayload?.type === 'choice-video-segment-change') {
         this.onResponseCallback({ nextSegment: response }, cue);
       } else if (interactionPayload?.response?.[response]) {

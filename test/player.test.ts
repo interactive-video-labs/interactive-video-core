@@ -86,7 +86,7 @@ describe('IVLabsPlayer', () => {
 
   it('should initialize dependencies correctly and register cues', () => {
     expect(StateMachine).toHaveBeenCalledWith('idle');
-    expect(InteractionManager).toHaveBeenCalledWith(mockPlayerContainer, expect.any(Object));
+    expect(InteractionManager).toHaveBeenCalledWith(mockPlayerContainer, expect.any(Object), expect.any(Object));
     expect(CueHandler).toHaveBeenCalledWith(videoElement);
     expect(Analytics).toHaveBeenCalledTimes(1);
     expect(mockCueHandlerInstance.registerCues).toHaveBeenCalledWith(config.cues);

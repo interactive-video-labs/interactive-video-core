@@ -71,7 +71,8 @@
             gap: 10px;
         }
 
-        button {
+        button,
+        select {
             padding: 10px 20px;
             font-size: 16px;
             cursor: pointer;
@@ -101,8 +102,14 @@
         <button id="destroyButton">Destroy Player</button>
         <select id="languageSwitcher">
             <option value="en">English</option>
-            <option value="es">Spanish</option>
+            <option value="ta">Tamil</option>
         </select>
+        <select id="decisionAdapterType">
+            <option value="memory">Memory Adapter</option>
+            <option value="localStorage">Local Storage Adapter</option>
+        </select>
+        <button id="getDecisionHistory">Get Decision History</button>
+        <button id="clearDecisionHistory">Clear Decision History</button>
     </div>
 
     <div id="log"></div>
@@ -111,78 +118,91 @@
         import { IVLabsPlayer } from '../dist/index.mjs';
 
         const logElement = document.getElementById('log');
+        let player = null;
 
-        const playerConfig = {
-            videoUrl: 'https://interactive-video-labs.github.io/assets/sample-video.mp4',
-            cues: [
-                { id: 'intro', time: 2, label: 'Introduction', payload: { message: 'Welcome!' } },
-                { id: 'question1', time: 5, label: 'Question 1', payload: { interaction: { type: 'choice', title: 'Quick Question', description: 'Please select the correct answer.', question: 'What is 2+2?', options: ['3', '4', '5'], correctAnswer: '4' } } },
-                { id: 'segmentChange', time: 10, label: 'Segment Change', payload: { interaction: { type: 'choice-video-segment-change', title: 'Choose your path', description: 'Select a video segment to jump to.', question: 'Where would you like to go?', options: [{ level: 'Segment A', video: 'https://interactive-video-labs.github.io/assets/sample-interaction-1.mp4' }, { level: 'Segment B', video: 'https://interactive-video-labs.github.io/assets/sample-interaction-2.mp4' }] } } },
-                { id: 'midpoint', time: 8, label: 'Midpoint', payload: { message: 'Halfway there!' } },
-                { id: 'question2', time: 12, label: 'Question 2', payload: { interaction: { type: 'text', title: 'Your Information', description: 'Please enter your name below.', question: 'Your name?' } } },
-                { id: 'end', time: 15, label: 'End', payload: { message: 'Thanks for watching!' } },
-            ],
-            initialState: 'idle',
-            locale: 'en',
-            translations: {
-                en: {
-                    'Quick Question': 'Quick Question',
-                    'Please select the correct answer.': 'Please select the correct answer.',
-                    'What is 2+2?': 'What is 2+2?',
-                    'Choose your path': 'Choose your path',
-                    'Select a video segment to jump to.': 'Select a video segment to jump to.',
-                    'Where would you like to go?': 'Where would you like to go?',
-                    'Your Information': 'Your Information',
-                    'Please enter your name below.': 'Please enter your name below.',
-                    'Your name?': 'Your name?',
-                    'Submit': 'Submit',
-                    'Enter your response': 'Enter your response',
-                    'Respond': 'Respond'
-                },
-                es: {
-                    'Quick Question': 'Pregunta Rápida',
-                    'Please select the correct answer.': 'Por favor, seleccione la respuesta correcta.',
-                    'What is 2+2?': '¿Cuánto es 2+2?',
-                    'Choose your path': 'Elige tu camino',
-                    'Select a video segment to jump to.': 'Seleccione un segmento de video para saltar.',
-                    'Where would you like to go?': '¿A dónde te gustaría ir?',
-                    'Your Information': 'Su Información',
-                    'Please enter your name below.': 'Por favor, ingrese su nombre a continuación.',
-                    'Your name?': '¿Su nombre?',
-                    'Submit': 'Enviar',
-                    'Enter your response': 'Escriba su respuesta',
-                    'Respond': 'Responder'
-                }
+        const createPlayer = () => {
+            if (player) {
+                player.destroy();
             }
-        };
 
-        let player = new IVLabsPlayer('player-container', playerConfig);
+            const decisionAdapterType = document.getElementById('decisionAdapterType').value;
+
+            const playerConfig = {
+                videoUrl: 'https://interactive-video-labs.github.io/assets/sample-video.mp4',
+                cues: [
+                    { id: 'intro', time: 2, label: 'Introduction', payload: { message: 'Welcome!' } },
+                    { id: 'question1', time: 5, label: 'Question 1', payload: { interaction: { type: 'choice', title: 'Quick Question', description: 'Please select the correct answer.', question: 'What is 2+2?', options: ['3', '4', '5'], correctAnswer: '4' } } },
+                    { id: 'segmentChange', time: 10, label: 'Segment Change', payload: { interaction: { type: 'choice-video-segment-change', title: 'Choose your path', description: 'Select a video segment to jump to.', question: 'Where would you like to go?', options: [{ level: 'Segment A', video: 'https://interactive-video-labs.github.io/assets/sample-interaction-1.mp4' }, { level: 'Segment B', video: 'https://interactive-video-labs.github.io/assets/sample-interaction-2.mp4' }] } } },
+                    { id: 'midpoint', time: 8, label: 'Midpoint', payload: { message: 'Halfway there!' } },
+                    { id: 'question2', time: 12, label: 'Question 2', payload: { interaction: { type: 'text', title: 'Your Information', description: 'Please enter your name below.', question: 'Your name?' } } },
+                    { id: 'end', time: 15, label: 'End', payload: { message: 'Thanks for watching!' } },
+                ],
+                initialState: 'idle',
+                locale: 'en',
+                translations: {
+                    en: {
+                        'Quick Question': 'Quick Question',
+                        'Please select the correct answer.': 'Please select the correct answer.',
+                        'What is 2+2?': 'What is 2+2?',
+                        'Choose your path': 'Choose your path',
+                        'Select a video segment to jump to.': 'Select a video segment to jump to.',
+                        'Where would you like to go?': 'Where would you like to go?',
+                        'Your Information': 'Your Information',
+                        'Please enter your name below.': 'Please enter your name below.',
+                        'Your name?': 'Your name?',
+                        'Submit': 'Submit',
+                        'Enter your response': 'Enter your response',
+                        'Respond': 'Respond'
+                    },
+                    ta: {
+                        'Quick Question': 'விரைவு கேள்வி',
+                        'Please select the correct answer.': 'தயவுசெய்து சரியான பதிலைத் தேர்வு செய்யவும்.',
+                        'What is 2+2?': '2+2 எத்தனை?',
+                        'Choose your path': 'உங்கள் பாதையைத் தேர்ந்தெடுக்கவும்',
+                        'Select a video segment to jump to.': 'செல்ல ஒரு வீடியோ பகுதியைத் தேர்ந்தெடுக்கவும்.',
+                        'Where would you like to go?': 'நீங்கள் எங்கே செல்ல விரும்புகிறீர்கள்?',
+                        'Your Information': 'உங்கள் தகவல்',
+                        'Please enter your name below.': 'தயவுசெய்து உங்கள் பெயரை கீழே உள்ளிடவும்.',
+                        'Your name?': 'உங்கள் பெயர்?',
+                        'Submit': 'சமர்ப்பிக்கவும்',
+                        'Enter your response': 'உங்கள் பதிலை உள்ளிடவும்',
+                        'Respond': 'பதிலளிக்கவும்'
+                    }
+
+                },
+                decisionAdapterType: decisionAdapterType,
+            };
+
+            player = new IVLabsPlayer('player-container', playerConfig);
+
+            player.on('onCueEnter', (payload) => {
+                log(`Analytics Event: onCueEnter - ${JSON.stringify(payload)}`);
+            });
+
+            player.on('onPromptShown', (payload) => {
+                log(`Analytics Event: onPromptShown - ${JSON.stringify(payload)}`);
+            });
+
+            player.on('onInteractionSelected', (payload) => {
+                log(`Analytics Event: onInteractionSelected - ${JSON.stringify(payload)}`);
+            });
+
+            player.on('onBranchJump', (payload) => {
+                log(`Analytics Event: onBranchJump - ${JSON.stringify(payload)}`);
+            });
+
+            player.on('onSessionEnd', (payload) => {
+                log(`Analytics Event: onSessionEnd - ${JSON.stringify(payload)}`);
+            });
+
+            log('IVLabsPlayer initialized.');
+        };
 
         const log = (message) => {
             console.log(message);
             logElement.innerHTML += `<p>${message}</p>`;
             logElement.scrollTop = logElement.scrollHeight;
         };
-
-        player.on('onCueEnter', (payload) => {
-            log(`Analytics Event: onCueEnter - ${JSON.stringify(payload)}`);
-        });
-
-        player.on('onPromptShown', (payload) => {
-            log(`Analytics Event: onPromptShown - ${JSON.stringify(payload)}`);
-        });
-
-        player.on('onInteractionSelected', (payload) => {
-            log(`Analytics Event: onInteractionSelected - ${JSON.stringify(payload)}`);
-        });
-
-        player.on('onBranchJump', (payload) => {
-            log(`Analytics Event: onBranchJump - ${JSON.stringify(payload)}`);
-        });
-
-        player.on('onSessionEnd', (payload) => {
-            log(`Analytics Event: onSessionEnd - ${JSON.stringify(payload)}`);
-        });
 
         document.getElementById('playButton').addEventListener('click', () => {
             player.play();
@@ -195,13 +215,38 @@
         document.getElementById('destroyButton').addEventListener('click', () => {
             player.destroy();
             log('Player destroyed.');
+            player = null; // Clear player instance after destroy
         });
 
         document.getElementById('languageSwitcher').addEventListener('change', (event) => {
-            player.setLocale(event.target.value);
+            if (player) {
+                player.setLocale(event.target.value);
+            }
         });
 
-        log('IVLabsPlayer initialized.');
+        document.getElementById('decisionAdapterType').addEventListener('change', () => {
+            createPlayer(); // Recreate player with new adapter type
+        });
+
+        document.getElementById('getDecisionHistory').addEventListener('click', async () => {
+            if (player) {
+                const history = await player.getDecisionHistory();
+                log(`Decision History: ${JSON.stringify(history, null, 2)}`);
+            } else {
+                log('Player not initialized.');
+            }
+        });
+
+        document.getElementById('clearDecisionHistory').addEventListener('click', async () => {
+            if (player) {
+                await player.clearDecisionHistory();
+                log('Decision History Cleared.');
+            } else {
+                log('Player not initialized.');
+            }
+        });
+
+        createPlayer(); // Initial player creation
     </script>
 </body>
 

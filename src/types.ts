@@ -16,6 +16,7 @@ export type PlayerConfig = {
   analyticsOptions?: Record<string, any>;
   interactions?: InteractionPayload[];
   initialState?: PlayerState;
+  decisionAdapterType?: 'memory' | 'localStorage';
 };
 
 export type Translations = Record<string, string | Record<string, string>>;
@@ -97,4 +98,17 @@ export type PlayerState = 'idle' | 'playing' | 'waitingForInteraction' | 'ended'
 
 export interface HTMLVideoElementWithControlsList extends HTMLVideoElement {
   controlsList: string;
+}
+
+export type Decision = {
+  cueId: string;
+  choice: string;
+  timestamp: number;
+  metadata?: Record<string, any>;
+};
+
+export interface DecisionAdapter {
+  saveDecision(decision: Decision): Promise<void>;
+  getDecisionHistory(): Promise<Decision[]>;
+  clearDecisionHistory(): Promise<void>;
 }

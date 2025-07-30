@@ -15,7 +15,10 @@ import type {
   HTMLVideoElementWithControlsList,
   Translations,
   AnalyticsPayload,
+  DecisionAdapter,
 } from './types';
+import { InMemoryDecisionAdapter } from './decisionAdapter';
+import { LocalStorageDecisionAdapter } from './localStorageDecisionAdapter';
 
 /**
  * The main class for the Interactive Video Labs Player.
@@ -31,6 +34,7 @@ export class IVLabsPlayer {
   private analytics: Analytics;
   private segmentManager: SegmentManager;
   private i18n: I18n;
+  private decisionAdapter: DecisionAdapter;
 
   private videoContainer: HTMLElement;
 
@@ -60,9 +64,14 @@ export class IVLabsPlayer {
       this.i18n.setLocale(config.locale);
     }
 
+    if (config.decisionAdapterType === 'localStorage') {
+      this.decisionAdapter = new LocalStorageDecisionAdapter();
+    } else {
+      this.decisionAdapter = new InMemoryDecisionAdapter();
+    }
     this.analytics = new Analytics();
     this.stateMachine = new StateMachine(config.initialState || 'idle');
-    this.interactionManager = new InteractionManager(this.videoContainer, this.i18n);
+    this.interactionManager = new InteractionManager(this.videoContainer, this.i18n, this.decisionAdapter);
     this.cueHandler = new CueHandler(this.videoElement);
     this.cueHandler.registerCues(config.cues || []);
     this.segmentManager = new SegmentManager(this.videoElement);
@@ -174,6 +183,22 @@ export class IVLabsPlayer {
    */
   public loadTranslations(locale: string, translations: Translations): void {
     this.i18n.load(locale, translations);
+  }
+
+  /**
+   * Retrieves the user's decision history.
+   * @returns A promise that resolves to an array of Decision objects.
+   */
+  public getDecisionHistory() {
+    return this.decisionAdapter.getDecisionHistory();
+  }
+
+  /**
+   * Clears the user's decision history.
+   * @returns A promise that resolves when the history is cleared.
+   */
+  public clearDecisionHistory() {
+    return this.decisionAdapter.clearDecisionHistory();
   }
 
   /** Cleans up the player, removes listeners and resets state. */
