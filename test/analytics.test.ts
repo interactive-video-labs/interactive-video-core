@@ -6,7 +6,7 @@ describe('Analytics', () => {
     const analytics = new Analytics();
     const mockHook = vi.fn();
 
-    analytics.onTrack(mockHook);
+    analytics.on('TEST_EVENT', mockHook);
     analytics.track('TEST_EVENT', { data: 'test' });
 
     expect(mockHook).toHaveBeenCalledTimes(1);
@@ -17,7 +17,7 @@ describe('Analytics', () => {
     const analytics = new Analytics();
     const mockHook = vi.fn();
 
-    analytics.onTrack(mockHook);
+    analytics.on('VIDEO_PAUSED', mockHook);
     analytics.reset();
     analytics.track('VIDEO_PAUSED');
 

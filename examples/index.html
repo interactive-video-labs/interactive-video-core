@@ -129,12 +129,24 @@
             logElement.scrollTop = logElement.scrollHeight;
         };
 
-        player.analytics.onTrack((event, payload) => {
-            log(`Analytics Event: ${event} - ${JSON.stringify(payload)}`);
+        player.on('onCueEnter', (payload) => {
+            log(`Analytics Event: onCueEnter - ${JSON.stringify(payload)}`);
         });
 
-        player.interactionManager.onPrompt((payload, cue) => {
-            log(`Interaction Prompt: ${payload.question} (Cue: ${cue.id})`);
+        player.on('onPromptShown', (payload) => {
+            log(`Analytics Event: onPromptShown - ${JSON.stringify(payload)}`);
+        });
+
+        player.on('onInteractionSelected', (payload) => {
+            log(`Analytics Event: onInteractionSelected - ${JSON.stringify(payload)}`);
+        });
+
+        player.on('onBranchJump', (payload) => {
+            log(`Analytics Event: onBranchJump - ${JSON.stringify(payload)}`);
+        });
+
+        player.on('onSessionEnd', (payload) => {
+            log(`Analytics Event: onSessionEnd - ${JSON.stringify(payload)}`);
         });
 
         document.getElementById('playButton').addEventListener('click', () => {

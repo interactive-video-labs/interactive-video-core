@@ -68,20 +68,24 @@ export class IVLabsPlayer {
    */
   private bindEvents(): void {
     this.cueHandler.onCue((cue: CuePoint) => {
+      this.analytics.track('onCueEnter', { event: 'onCueEnter', cueId: cue.id, timestamp: Date.now() });
+
       if (cue.payload?.interaction) {
         this.videoElement.pause()
         this.stateMachine.transitionTo('waitingForInteraction')
         this.interactionManager.handleInteractionCue(cue)
-        this.analytics.track('CUE_TRIGGERED', { event: 'CUE_TRIGGERED', cueId: cue.id, timestamp: Date.now() })
+        this.analytics.track('onPromptShown', { event: 'onPromptShown', cueId: cue.id, timestamp: Date.now() });
       } else {
-        this.analytics.track('CUE_TRIGGERED', { event: 'CUE_TRIGGERED', cueId: cue.id, timestamp: Date.now() })
         this.stateMachine.transitionTo('playing')
       }
     })
 
 
     this.interactionManager.onResponse((response: any, cue: CuePoint) => {
+      this.analytics.track('onInteractionSelected', { event: 'onInteractionSelected', cueId: cue.id, data: { response }, timestamp: Date.now() });
+
       if (response && response.nextSegment) {
+        this.analytics.track('onBranchJump', { event: 'onBranchJump', cueId: cue.id, data: { nextSegment: response.nextSegment }, timestamp: Date.now() });
         this.segmentManager.playSegment(response.nextSegment);
       } else {
         this.videoElement.play().catch(error => {
@@ -141,6 +145,15 @@ export class IVLabsPlayer {
     this.videoElement.pause()
   }
 
+  /**
+   * Registers a custom analytics hook for a specific event.
+   * @param event - The event to listen for.
+   * @param callback - The function to be called when the event is tracked.
+   */
+  public on(event: AnalyticsEvent, callback: (payload: AnalyticsPayload) => void): void {
+    this.analytics.on(event, (event, payload) => callback(payload));
+  }
+
 
 
   /** Cleans up the player, removes listeners and resets state. */
@@ -148,6 +161,6 @@ export class IVLabsPlayer {
     console.log('IVLabsPlayer destroy() called.')
     this.cueHandler.destroy()
     this.interactionManager.destroy()
-    this.analytics.track('PLAYER_DESTROYED')
+    this.analytics.track('onSessionEnd', { event: 'onSessionEnd', timestamp: Date.now() });
   }
 }
