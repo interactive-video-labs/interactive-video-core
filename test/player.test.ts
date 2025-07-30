@@ -86,7 +86,7 @@ describe('IVLabsPlayer', () => {
 
   it('should initialize dependencies correctly and register cues', () => {
     expect(StateMachine).toHaveBeenCalledWith('idle');
-    expect(InteractionManager).toHaveBeenCalledWith(mockPlayerContainer);
+    expect(InteractionManager).toHaveBeenCalledWith(mockPlayerContainer, expect.any(Object));
     expect(CueHandler).toHaveBeenCalledWith(videoElement);
     expect(Analytics).toHaveBeenCalledTimes(1);
     expect(mockCueHandlerInstance.registerCues).toHaveBeenCalledWith(config.cues);
@@ -116,17 +116,17 @@ describe('IVLabsPlayer', () => {
 
     it('should track VIDEO_STARTED on play event', () => {
       playCallback();
-      expect(mockAnalyticsInstance.track).toHaveBeenCalledWith('VIDEO_STARTED');
+      expect(mockAnalyticsInstance.track).toHaveBeenCalledWith('VIDEO_STARTED', expect.any(Object));
     });
 
     it('should track VIDEO_PAUSED on pause event', () => {
       pauseCallback();
-      expect(mockAnalyticsInstance.track).toHaveBeenCalledWith('VIDEO_PAUSED');
+      expect(mockAnalyticsInstance.track).toHaveBeenCalledWith('VIDEO_PAUSED', expect.any(Object));
     });
 
     it('should track VIDEO_ENDED on ended event', () => {
       endedCallback();
-      expect(mockAnalyticsInstance.track).toHaveBeenCalledWith('VIDEO_ENDED');
+      expect(mockAnalyticsInstance.track).toHaveBeenCalledWith('VIDEO_ENDED', expect.any(Object));
     });
   });
 

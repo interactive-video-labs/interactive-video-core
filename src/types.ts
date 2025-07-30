@@ -5,37 +5,33 @@
  * and localization.
  */
 
-
 export type PlayerConfig = {
-  videoUrl?: string
-  cues?: CuePoint[]
-  subtitlesUrl?: string
-  localization?: LocalizationStrings
-  autoplay?: boolean
-  loop?: boolean
-  analyticsOptions?: Record<string, any>
-  interactions?: InteractionPayload[]
-  initialState?: PlayerState
-}
+  videoUrl?: string;
+  cues?: CuePoint[];
+  subtitlesUrl?: string;
+  locale?: string;
+  translations?: Record<string, Translations>;
+  autoplay?: boolean;
+  loop?: boolean;
+  analyticsOptions?: Record<string, any>;
+  interactions?: InteractionPayload[];
+  initialState?: PlayerState;
+};
+
+export type Translations = Record<string, string | Record<string, string>>;
 
 export type CuePoint = {
-  id: string
-  time: number // in seconds
-  label?: string
-  payload?: any // arbitrary metadata for interaction
-}
+  id: string;
+  time: number; // in seconds
+  label?: string;
+  payload?: any; // arbitrary metadata for interaction
+};
 
 export type InteractionResponse = {
-  cueId: string
-  choice: string
-  metadata?: Record<string, any>
-}
-
-export type LocalizationStrings = {
-  [lang: string]: {
-    [key: string]: string
-  }
-}
+  cueId: string;
+  choice: string;
+  metadata?: Record<string, any>;
+};
 
 export type AnalyticsEvent =
   | 'PLAYER_LOADED'
@@ -52,33 +48,33 @@ export type AnalyticsEvent =
   | 'onPromptShown'
   | 'onInteractionSelected'
   | 'onBranchJump'
-  | 'onSessionEnd'
+  | 'onSessionEnd';
 
 export type AnalyticsPayload = {
-  event: AnalyticsEvent
-  timestamp: number
-  cueId?: string
-  data?: any
-}
+  event: AnalyticsEvent;
+  timestamp: number;
+  cueId?: string;
+  data?: any;
+};
 
 export interface AnalyticsHook {
-  (payload: AnalyticsPayload): void
+  (payload?: AnalyticsPayload): void;
 }
 
 export type ChoiceVideoSegmentChangeOption = {
-  level: string
-  video: string
-}
+  level: string;
+  video: string;
+};
 
 export type InteractionPayload = {
-  type: 'choice' | 'text' | 'rating' | 'choice-video-segment-change'
-  title?: string
-  description?: string
-  question: string
-  options?: string[] | ChoiceVideoSegmentChangeOption[]
-  correctAnswer?: string
-  response?: Record<string, any>
-}
+  type: 'choice' | 'text' | 'rating' | 'choice-video-segment-change';
+  title?: string;
+  description?: string;
+  question: string;
+  options?: (string | ChoiceVideoSegmentChangeOption)[];
+  correctAnswer?: string;
+  response?: Record<string, any>;
+};
 
 export type PlayerEvent =
   | 'play'
@@ -88,17 +84,16 @@ export type PlayerEvent =
   | 'interaction'
   | 'branch'
   | 'error'
-  | 'segmentchange'
-
+  | 'segmentchange';
 
 export type InteractionSegment = {
-  id: string
-  cueId: string
-  payload: InteractionPayload
-  triggerTime?: number
-}
+  id: string;
+  cueId: string;
+  payload: InteractionPayload;
+  triggerTime?: number;
+};
 
-export type PlayerState = 'idle' | 'playing' | 'waitingForInteraction' | 'ended' | 'error'
+export type PlayerState = 'idle' | 'playing' | 'waitingForInteraction' | 'ended' | 'error';
 
 export interface HTMLVideoElementWithControlsList extends HTMLVideoElement {
   controlsList: string;

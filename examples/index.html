@@ -99,6 +99,10 @@
         <button id="playButton">Play</button>
         <button id="pauseButton">Pause</button>
         <button id="destroyButton">Destroy Player</button>
+        <select id="languageSwitcher">
+            <option value="en">English</option>
+            <option value="es">Spanish</option>
+        </select>
     </div>
 
     <div id="log"></div>
@@ -119,6 +123,37 @@
                 { id: 'end', time: 15, label: 'End', payload: { message: 'Thanks for watching!' } },
             ],
             initialState: 'idle',
+            locale: 'en',
+            translations: {
+                en: {
+                    'Quick Question': 'Quick Question',
+                    'Please select the correct answer.': 'Please select the correct answer.',
+                    'What is 2+2?': 'What is 2+2?',
+                    'Choose your path': 'Choose your path',
+                    'Select a video segment to jump to.': 'Select a video segment to jump to.',
+                    'Where would you like to go?': 'Where would you like to go?',
+                    'Your Information': 'Your Information',
+                    'Please enter your name below.': 'Please enter your name below.',
+                    'Your name?': 'Your name?',
+                    'Submit': 'Submit',
+                    'Enter your response': 'Enter your response',
+                    'Respond': 'Respond'
+                },
+                es: {
+                    'Quick Question': 'Pregunta Rápida',
+                    'Please select the correct answer.': 'Por favor, seleccione la respuesta correcta.',
+                    'What is 2+2?': '¿Cuánto es 2+2?',
+                    'Choose your path': 'Elige tu camino',
+                    'Select a video segment to jump to.': 'Seleccione un segmento de video para saltar.',
+                    'Where would you like to go?': '¿A dónde te gustaría ir?',
+                    'Your Information': 'Su Información',
+                    'Please enter your name below.': 'Por favor, ingrese su nombre a continuación.',
+                    'Your name?': '¿Su nombre?',
+                    'Submit': 'Enviar',
+                    'Enter your response': 'Escriba su respuesta',
+                    'Respond': 'Responder'
+                }
+            }
         };
 
         let player = new IVLabsPlayer('player-container', playerConfig);
@@ -160,6 +195,10 @@
         document.getElementById('destroyButton').addEventListener('click', () => {
             player.destroy();
             log('Player destroyed.');
+        });
+
+        document.getElementById('languageSwitcher').addEventListener('change', (event) => {
+            player.setLocale(event.target.value);
         });
 
         log('IVLabsPlayer initialized.');

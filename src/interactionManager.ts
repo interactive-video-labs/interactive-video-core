@@ -1,5 +1,6 @@
 import { ChoiceVideoSegmentChangeOption, CuePoint as Cue } from './types';
 import { InteractionPayload } from './types';
+import { I18n } from './i18n';
 
 type InteractionHandler = (payload: InteractionPayload, cue: Cue) => void;
 type ResponseHandler = (response: any, cue: Cue) => void;
@@ -17,13 +18,16 @@ export class InteractionManager {
   private interactionDiv: HTMLElement | null = null;
   private interactionRenderers: Record<string, InteractionRenderer>;
   private interactionStore: Map<number, Cue>;
+  private i18n: I18n;
 
   /**
    * Creates an instance of InteractionManager.
    * @param container - The container element where interactions will be rendered.
+   * @param i18n - The I18n instance for localization.
    */
-  constructor(container: HTMLElement) {
+  constructor(container: HTMLElement, i18n: I18n) {
     this.container = container;
+    this.i18n = i18n;
     this.interactionStore = new Map();
 
     this.interactionRenderers = {
@@ -96,12 +100,12 @@ export class InteractionManager {
     this.interactionDiv.className = 'ivl-interaction-overlay';
 
     const title = document.createElement('h3');
-    title.textContent = payload.title || 'Interaction';
+    title.textContent = this.i18n.translate(payload.title || 'Interaction');
     this.interactionDiv.appendChild(title);
 
     if (payload.description) {
       const description = document.createElement('p');
-      description.textContent = payload.description;
+      description.textContent = this.i18n.translate(payload.description);
       this.interactionDiv.appendChild(description);
     }
 
@@ -119,7 +123,7 @@ export class InteractionManager {
 
     if (payload.question) {
       const question = document.createElement('p');
-      question.textContent = payload.question;
+      question.textContent = this.i18n.translate(payload.question);
       this.interactionDiv.appendChild(question);
     }
 
@@ -131,7 +135,7 @@ export class InteractionManager {
         const button = document.createElement('button');
         button.className = 'ivl-choice-button';
         button.dataset.response = option;
-        button.textContent = option;
+        button.textContent = this.i18n.translate(option);
         buttonContainer.appendChild(button);
       }
     } else if (payload.options) {
@@ -140,7 +144,7 @@ export class InteractionManager {
         const button = document.createElement('button');
         button.className = 'ivl-choice-button';
         button.dataset.response = option.video;
-        button.textContent = option.level;
+        button.textContent = this.i18n.translate(option.level);
         buttonContainer.appendChild(button);
       }
     }
@@ -167,19 +171,19 @@ export class InteractionManager {
 
     if (payload.question) {
       const question = document.createElement('p');
-      question.textContent = payload.question;
+      question.textContent = this.i18n.translate(payload.question);
       this.interactionDiv.appendChild(question);
     }
 
     const textInput = document.createElement('input');
     textInput.type = 'text';
     textInput.id = 'ivl-text-input';
-    textInput.placeholder = 'Enter your response';
+    textInput.placeholder = this.i18n.translate('Enter your response');
     this.interactionDiv.appendChild(textInput);
 
     const submitButton = document.createElement('button');
     submitButton.id = 'ivl-submit-button';
-    submitButton.textContent = 'Submit';
+    submitButton.textContent = this.i18n.translate('Submit');
     this.interactionDiv.appendChild(submitButton);
 
     submitButton.addEventListener('click', () => {
@@ -197,13 +201,13 @@ export class InteractionManager {
 
     if (payload.question) {
       const question = document.createElement('p');
-      question.textContent = payload.question;
+      question.textContent = this.i18n.translate(payload.question);
       this.interactionDiv.appendChild(question);
     }
 
     const button = document.createElement('button');
     button.id = 'ivl-interaction-button';
-    button.textContent = 'Respond';
+    button.textContent = this.i18n.translate('Respond');
     this.interactionDiv.appendChild(button);
 
     button.addEventListener('click', () => {
