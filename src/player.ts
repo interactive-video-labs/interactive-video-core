@@ -19,6 +19,8 @@ import type {
 } from './types';
 import { InMemoryDecisionAdapter } from './InMemoryDecisionAdapter';
 import { LocalStorageDecisionAdapter } from './localStorageDecisionAdapter';
+import { FALLBACK_CSS } from './style';
+
 
 /**
  * The main class for the Interactive Video Labs Player.
@@ -53,6 +55,8 @@ export class IVLabsPlayer {
     this.videoContainer.appendChild(this.videoElement);
     targetElement.innerHTML = '';
     targetElement.appendChild(this.videoContainer);
+
+    this._injectFallbackCss();
 
     this.i18n = new I18n();
     if (config.translations) {
@@ -201,6 +205,16 @@ export class IVLabsPlayer {
    */
   public clearDecisionHistory() {
     return this.decisionAdapter.clearDecisionHistory();
+  }
+
+  /**
+   * Injects fallback CSS into the document head.
+   * This ensures basic styling is present even if external stylesheets are not loaded.
+   */
+  private _injectFallbackCss(): void {
+    const style = document.createElement('style');
+    style.textContent = FALLBACK_CSS;
+    document.head.appendChild(style);
   }
 
   /** Cleans up the player, removes listeners and resets state. */
