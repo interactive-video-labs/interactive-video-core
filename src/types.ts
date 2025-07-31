@@ -25,6 +25,7 @@ export type Translations = Record<string, string | Record<string, string>>;
 export type CuePoint = {
   id: string;
   time: number; // in seconds
+  subtitleText?: string;
   label?: string;
   payload?: any; // arbitrary metadata for interaction
 };
@@ -95,7 +96,12 @@ export type InteractionSegment = {
   triggerTime?: number;
 };
 
-export type PlayerState = 'idle' | 'playing' | 'waitingForInteraction' | 'ended' | 'error';
+export type PlayerState =
+  | 'idle'
+  | 'playing'
+  | 'waitingForInteraction'
+  | 'ended'
+  | 'error';
 
 export interface HTMLVideoElementWithControlsList extends HTMLVideoElement {
   controlsList: string;

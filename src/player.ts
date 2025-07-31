@@ -20,7 +20,7 @@ import type {
 import { InMemoryDecisionAdapter } from './InMemoryDecisionAdapter';
 import { LocalStorageDecisionAdapter } from './localStorageDecisionAdapter';
 import { FALLBACK_CSS } from './style';
-
+import { SubtitlesManager } from './subtitlesManager';
 
 /**
  * The main class for the Interactive Video Labs Player.
@@ -37,20 +37,40 @@ export class IVLabsPlayer {
   private segmentManager: SegmentManager;
   private i18n: I18n;
   private decisionAdapter: DecisionAdapter;
+  private subtitlesManager?: SubtitlesManager;
 
   private videoContainer: HTMLElement;
+  private subtitlesElement?: HTMLTrackElement;
 
   constructor(target: string, config: PlayerConfig) {
     const targetElement = document.getElementById(target);
-    if (!targetElement) throw new Error(`Target container with ID "${target}" not found.`);
+    if (!targetElement)
+      throw new Error(`Target container with ID "${target}" not found.`);
 
     this.config = config;
     this.videoContainer = document.createElement('div');
     this.videoContainer.className = 'ivl-player-container';
 
-    this.videoElement = document.createElement('video') as HTMLVideoElementWithControlsList;
+    this.videoElement = document.createElement(
+      'video'
+    ) as HTMLVideoElementWithControlsList;
     this.videoElement.controls = true;
     this.videoElement.controlsList = 'nodownload';
+
+    if (config.subtitlesUrl) {
+      this.subtitlesElement = document.createElement('track');
+      this.subtitlesElement.src = config.subtitlesUrl;
+      this.subtitlesElement.kind = 'subtitles';
+      this.subtitlesElement.default = true;
+      this.subtitlesManager = new SubtitlesManager(
+        this.subtitlesElement,
+        config.cues
+      );
+      this.videoElement.appendChild(this.subtitlesElement);
+      this.subtitlesManager.onLoad((cues) => {
+        this.start(cues);
+      });
+    }
 
     this.videoContainer.appendChild(this.videoElement);
     targetElement.innerHTML = '';
@@ -60,7 +80,9 @@ export class IVLabsPlayer {
 
     this.i18n = new I18n();
     if (config.translations) {
-      for (const [locale, translations] of Object.entries(config.translations)) {
+      for (const [locale, translations] of Object.entries(
+        config.translations
+      )) {
         this.i18n.load(locale, translations);
       }
     }
@@ -77,14 +99,23 @@ export class IVLabsPlayer {
     }
     this.analytics = new Analytics();
     this.stateMachine = new StateMachine(config.initialState || 'idle');
-    this.interactionManager = new InteractionManager(this.videoContainer, this.i18n, this.decisionAdapter);
+    this.interactionManager = new InteractionManager(
+      this.videoContainer,
+      this.i18n,
+      this.decisionAdapter
+    );
     this.cueHandler = new CueHandler(this.videoElement);
-    this.cueHandler.registerCues(config.cues || []);
     this.segmentManager = new SegmentManager(this.videoElement);
+    if (!config.subtitlesUrl) {
+      this.start(config.cues);
+    }
+  }
 
-    if (!config.videoUrl) throw new Error('videoUrl must be provided in the PlayerConfig.');
-    this.videoElement.src = config.videoUrl;
-
+  private start(cues?: CuePoint[]) {
+    this.cueHandler.registerCues(cues || []);
+    if (!this.config.videoUrl)
+      throw new Error('videoUrl must be provided in the PlayerConfig.');
+    this.videoElement.src = this.config.videoUrl;
     this.bindEvents();
     this.cueHandler.start();
   }
@@ -94,26 +125,44 @@ export class IVLabsPlayer {
    */
   private bindEvents(): void {
     this.cueHandler.onCue((cue: CuePoint) => {
-      this.analytics.track('onCueEnter', { event: 'onCueEnter', cueId: cue.id, timestamp: Date.now() });
+      this.analytics.track('onCueEnter', {
+        event: 'onCueEnter',
+        cueId: cue.id,
+        timestamp: Date.now(),
+      });
 
       if (cue.payload?.interaction) {
         this.videoElement.pause();
         this.stateMachine.transitionTo('waitingForInteraction');
         this.interactionManager.handleInteractionCue(cue);
-        this.analytics.track('onPromptShown', { event: 'onPromptShown', cueId: cue.id, timestamp: Date.now() });
+        this.analytics.track('onPromptShown', {
+          event: 'onPromptShown',
+          cueId: cue.id,
+          timestamp: Date.now(),
+        });
       } else {
         this.stateMachine.transitionTo('playing');
       }
     });
 
     this.interactionManager.onResponse((response: any, cue: CuePoint) => {
-      this.analytics.track('onInteractionSelected', { event: 'onInteractionSelected', cueId: cue.id, data: { response }, timestamp: Date.now() });
+      this.analytics.track('onInteractionSelected', {
+        event: 'onInteractionSelected',
+        cueId: cue.id,
+        data: { response },
+        timestamp: Date.now(),
+      });
 
       if (response && response.nextSegment) {
-        this.analytics.track('onBranchJump', { event: 'onBranchJump', cueId: cue.id, data: { nextSegment: response.nextSegment }, timestamp: Date.now() });
+        this.analytics.track('onBranchJump', {
+          event: 'onBranchJump',
+          cueId: cue.id,
+          data: { nextSegment: response.nextSegment },
+          timestamp: Date.now(),
+        });
         this.segmentManager.playSegment(response.nextSegment);
       } else {
-        this.videoElement.play().catch(error => {
+        this.videoElement.play().catch((error) => {
           console.error('Video playback failed:', error);
         });
       }
@@ -128,15 +177,24 @@ export class IVLabsPlayer {
     });
 
     this.videoElement.addEventListener('play', () => {
-      this.analytics.track('VIDEO_STARTED', { event: 'VIDEO_STARTED', timestamp: Date.now() });
+      this.analytics.track('VIDEO_STARTED', {
+        event: 'VIDEO_STARTED',
+        timestamp: Date.now(),
+      });
     });
 
     this.videoElement.addEventListener('pause', () => {
-      this.analytics.track('VIDEO_PAUSED', { event: 'VIDEO_PAUSED', timestamp: Date.now() });
+      this.analytics.track('VIDEO_PAUSED', {
+        event: 'VIDEO_PAUSED',
+        timestamp: Date.now(),
+      });
     });
 
     this.videoElement.addEventListener('ended', () => {
-      this.analytics.track('VIDEO_ENDED', { event: 'VIDEO_ENDED', timestamp: Date.now() });
+      this.analytics.track('VIDEO_ENDED', {
+        event: 'VIDEO_ENDED',
+        timestamp: Date.now(),
+      });
     });
   }
 
@@ -170,7 +228,10 @@ export class IVLabsPlayer {
    * @param event - The event to listen for.
    * @param callback - The function to be called when the event is tracked.
    */
-  public on(event: AnalyticsEvent, callback: (payload: AnalyticsPayload | undefined) => void): void {
+  public on(
+    event: AnalyticsEvent,
+    callback: (payload: AnalyticsPayload | undefined) => void
+  ): void {
     this.analytics.on(event, (event, payload) => callback(payload));
   }
 
@@ -222,6 +283,9 @@ export class IVLabsPlayer {
     console.log('IVLabsPlayer destroy() called.');
     this.cueHandler.destroy();
     this.interactionManager.destroy();
-    this.analytics.track('onSessionEnd', { event: 'onSessionEnd', timestamp: Date.now() });
+    this.analytics.track('onSessionEnd', {
+      event: 'onSessionEnd',
+      timestamp: Date.now(),
+    });
   }
 }

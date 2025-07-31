@@ -129,9 +129,31 @@
 
             const playerConfig = {
                 videoUrl: 'https://interactive-video-labs.github.io/assets/sample-video.mp4',
+                subtitlesUrl: "./test.vtt",
                 cues: [
+                    {
+                        id: 'microservices-quiz',
+                        // Time can be injected by parser or tool later
+                        label: 'Microservices Subtitle Trigger',
+                        source: 'subtitle', // explicitly mark this as derived from subtitle
+                        subtitleText: 'This is the first subtitle.',
+                        payload: {
+                            interaction: {
+                            type: 'choice',
+                            title: 'Quick Check',
+                            description: 'Based on the previous subtitle:',
+                            question: 'Why are microservices useful?',
+                            options: [
+                                'They slow down deployments',
+                                'They let teams work independently',
+                                'They require fewer services',
+                            ],
+                            correctAnswer: 'They let teams work independently'
+                            }
+                        }
+                    },
                     { id: 'intro', time: 2, label: 'Introduction', payload: { message: 'Welcome!' } },
-                    { id: 'question1', time: 5, label: 'Question 1', payload: { interaction: { type: 'choice', title: 'Quick Question', description: 'Please select the correct answer.', question: 'What is 2+2?', options: ['3', '4', '5'], correctAnswer: '4' } } },
+                    // { id: 'question1', time: 5, label: 'Question 1', payload: { interaction: { type: 'choice', title: 'Quick Question', description: 'Please select the correct answer.', question: 'What is 2+2?', options: ['3', '4', '5'], correctAnswer: '4' } } },
                     { id: 'segmentChange', time: 10, label: 'Segment Change', payload: { interaction: { type: 'choice-video-segment-change', title: 'Choose your path', description: 'Select a video segment to jump to.', question: 'Where would you like to go?', options: [{ level: 'Segment A', video: 'https://interactive-video-labs.github.io/assets/sample-interaction-1.mp4' }, { level: 'Segment B', video: 'https://interactive-video-labs.github.io/assets/sample-interaction-2.mp4' }] } } },
                     { id: 'midpoint', time: 8, label: 'Midpoint', payload: { message: 'Halfway there!' } },
                     { id: 'question2', time: 12, label: 'Question 2', payload: { interaction: { type: 'text', title: 'Your Information', description: 'Please enter your name below.', question: 'Your name?' } } },
