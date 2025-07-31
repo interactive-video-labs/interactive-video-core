@@ -6,17 +6,21 @@
  */
 
 export const FALLBACK_CSS = `
-body {
-    font-family: Arial, sans-serif;
-    margin: 20px;
-    line-height: 1.6;
-    color: #333;
-}
-h1, h2, h3, h4, h5, h6 {
-    color: #000;
-    margin-top: 1em;
-    margin-bottom: 0.5em;
-}
+.ivl-player-container {  
+    font-family: Arial, sans-serif;  
+    line-height: 1.6;  
+    color: #333;  
+}  
+.ivl-player-container h1, 
+.ivl-player-container h2, 
+.ivl-player-container h3, 
+.ivl-player-container h4, 
+.ivl-player-container h5, 
+.ivl-player-container h6 {  
+    color: #000;  
+    margin-top: 1em;  
+    margin-bottom: 0.5em;  
+}  
 
 
         .ivl-player-container {
