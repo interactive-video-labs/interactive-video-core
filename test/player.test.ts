@@ -52,12 +52,22 @@ describe('IVLabsPlayer', () => {
       innerHTML: '',
     } as unknown as HTMLElement;
 
+    // Mock document.head
+    Object.defineProperty(document, 'head', {
+      value: {
+        appendChild: vi.fn(),
+      },
+      writable: true,
+    });
+
     // Mock document.createElement and document.getElementById
     vi.spyOn(document, 'createElement').mockImplementation((tagName: string) => {
       if (tagName === 'video') {
         return videoElement;
       } else if (tagName === 'div') {
         return mockPlayerContainer;
+      } else if (tagName === 'style') {
+        return { textContent: '' } as HTMLStyleElement;
       }
       return {} as HTMLElement; // Fallback for other elements
     });
