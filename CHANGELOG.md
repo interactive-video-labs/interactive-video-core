@@ -1,6 +1,21 @@
 # Changelog
 
 
+## v0.1.2 2025 07 31
+
+### Refactor
+*   Scope global CSS rules to .ivl-player-container
+*   Re-embed fallback CSS in player.ts with !important rules
+
+### Features
+*   Add JSDoc comment to FALLBACK_CSS
+*   Add mock for document.head and style element in player tests
+
+## v0.1.1 2025 07 30
+
+### Docs
+*   Update README and DEVELOPER.md for decision tracking and serve command
+
 ## v0.1.0 2025 07 29
 
 Initial stable release candidate
