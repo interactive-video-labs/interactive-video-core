@@ -31,7 +31,13 @@ export class SubtitlesManager {
    */
   public onLoad(callback: (cues?: CuePoint[]) => void): void {
     this.subtitlesElement.addEventListener('load', () => {
-      const trackCues = Array.from(this.subtitlesElement.track.cues || []);
+      const track = this.subtitlesElement.track;
+      if (!track) {
+        console.warn('Subtitle track not available');
+        callback(this.cuePoints);
+        return;
+      }
+      const trackCues = Array.from(track.cues || []);
       const cues = this.cuePoints.map((cueConfig) => ({
         ...cueConfig,
         time:
