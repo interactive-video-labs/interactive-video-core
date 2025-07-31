@@ -6,8 +6,8 @@
   <img src="https://img.shields.io/npm/v/@interactive-video-labs/core" alt="NPM Version" />
   <img src="https://img.shields.io/npm/l/@interactive-video-labs/core" alt="NPM License" />
   <img src="https://img.shields.io/npm/d18m/@interactive-video-labs/core?style=flat-square" alt="NPM Downloads" />
-  <a href="https://github.com/interactive-video-labs/core/actions">
-    <img src="https://github.com/interactive-video-labs/core/actions/workflows/release.yml/badge.svg" alt="Build Status" />
+  <a href="https://github.com/interactive-video-labs/interactive-video-core/actions">
+    <img src="https://github.com/interactive-video-labs/interactive-video-core/actions/workflows/release.yml/badge.svg" alt="Build Status" />
   </a>
 </p>
 
