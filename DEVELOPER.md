@@ -54,9 +54,15 @@ Here are the essential commands for development:
 
 -   **Run Demo Project:**
     ```bash
+    pnpm serve
+    ```
+    This command starts a local server to serve the `examples/index.html` file, allowing you to test core functionality in a browser. Make sure to run `pnpm build` first if you've made changes to the source code.
+
+-   **Development with Live Reloading:**
+    ```bash
     pnpm dev
     ```
-    This command typically starts a development server that serves the `examples/index.html` file, allowing you to test core functionality in a browser.
+    This command watches for changes in the source code and automatically rebuilds the package. You would typically run this in conjunction with `pnpm serve` to see your changes reflected live in the demo.
 
 -   **Build Core Package:**
     ```bash

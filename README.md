@@ -40,7 +40,11 @@ For a basic working example, refer to the [`examples/index.html`](examples/index
 Here's a simplified snippet of how you might set up the player:
 
 ```typescript
-import { IVLabsPlayer } from '@interactive-video-labs/core';
+import { IVLabsPlayer, InMemoryDecisionAdapter, LocalStorageDecisionAdapter } from '@interactive-video-labs/core';
+
+// Initialize a decision adapter (e.g., for in-memory storage or local storage)
+// const decisionAdapter = new InMemoryDecisionAdapter();
+const decisionAdapter = new LocalStorageDecisionAdapter();
 
 const playerConfig = {
     videoUrl: 'https://interactive-video-labs.github.io/assets/sample-video.mp4',
@@ -116,6 +120,7 @@ const playerConfig = {
     }
 ],
     initialState: 'idle',
+    decisionAdapter: decisionAdapter, // Pass the decision adapter to the player config
 };
 
 // Assuming you have a div with id="player-container" in your HTML
@@ -124,6 +129,43 @@ const player = new IVLabsPlayer('player-container', playerConfig);
 player.init();
 // player.play(); // Start playback
 ```
+
+### Decision Tracking and Persistence
+
+The `@interactive-video-labs/core` module now supports tracking and persisting user decisions made during interactions. This is achieved through the `DecisionAdapter` interface, which allows you to define how decisions are stored and retrieved. Two concrete implementations are provided:
+
+*   **`InMemoryDecisionAdapter`**: Stores decisions in memory. This is useful for temporary tracking within a single session.
+*   **`LocalStorageDecisionAdapter`**: Stores decisions in the browser's local storage, providing persistence across sessions.
+
+To use decision tracking, simply instantiate one of the adapters and pass it to the `IVLabsPlayer` configuration:
+
+```typescript
+import { IVLabsPlayer, LocalStorageDecisionAdapter } from '@interactive-video-labs/core';
+
+const decisionAdapter = new LocalStorageDecisionAdapter();
+
+const playerConfig = {
+    // ... other player configurations
+    decisionAdapter: decisionAdapter,
+};
+
+const player = new IVLabsPlayer('player-container', playerConfig);
+player.init();
+
+// To retrieve decision history:
+async function getHistory() {
+    const history = await decisionAdapter.getDecisionHistory();
+    console.log('Decision History:', history);
+}
+
+// To clear decision history:
+async function clearHistory() {
+    await decisionAdapter.clearDecisionHistory();
+    console.log('Decision History cleared.');
+}
+```
+
+This allows you to easily integrate decision tracking into your interactive video experiences, enabling features like personalized content, progress saving, or analytics based on user choices.
 
 
 
@@ -144,7 +186,7 @@ The `@interactive-video-labs/core` engine includes the following core functional
 *   **Subtitle-based Cue Generation:** Supports generating cues from subtitles.
 *   **Multi-segment Video Lessons:** Capability to support video content divided into multiple segments.
 *   **Build and Publish Pipeline:** Configured for NPM publishing.
-*   **Decision History Tracking:** Explored with adapters for tracking user decisions.
+*   **Decision Tracking and Persistence:** Supports tracking and persisting user decisions using configurable adapters (e.g., `InMemoryDecisionAdapter`, `LocalStorageDecisionAdapter`).
 
 ---
 
