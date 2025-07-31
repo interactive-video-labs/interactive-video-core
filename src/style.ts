@@ -1,5 +1,11 @@
+/**
+ * Fallback CSS for the IVL Player
+ * This CSS provides basic styling for the IVL Player components
+ * and ensures readability in case the main styles fail to load.
+ * It includes styles for the player container, video element, and controls.
+ */
+
 export const FALLBACK_CSS = `
-/* Fallback CSS for basic readability */
 body {
     font-family: Arial, sans-serif;
     margin: 20px;
