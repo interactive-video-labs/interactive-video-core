@@ -16,8 +16,8 @@
     "dist"
   ],
   "scripts": {
-    "build": "tsup src/index.ts --format esm,cjs --dts",
-    "dev": "tsup src/index.ts --watch --format esm,cjs",
+    "build": "tsup",
+    "dev": "tsup --watch",
     "test": "vitest run",
     "clean": "rm -rf dist",
     "prepare": "pnpm build",
