@@ -101,34 +101,34 @@ export class InteractionManager {
   }
 
 
-  private renderRatingInteraction(payload: InteractionPayload, cue: Cue): void {
-  if (!this.interactionDiv) return;
+  private renderRatingInteraction(payload: RatingInteraction, cue: Cue): void {
+    if (!this.interactionDiv) return;
 
-  const question = document.createElement('p');
-  question.textContent = this.i18n.translate(payload.question);
-  this.interactionDiv.appendChild(question);
+    const question = document.createElement('p');
+    question.textContent = this.i18n.translate(payload.question);
+    this.interactionDiv.appendChild(question);
 
-  const ratingContainer = document.createElement('div');
-  ratingContainer.className = 'ivl-rating-container';
+    const ratingContainer = document.createElement('div');
+    ratingContainer.className = 'ivl-rating-container';
 
-  for (let i = 1; i <= 5; i++) {
-    const button = document.createElement('button');
-    button.className = 'ivl-rating-button';
-    button.dataset.response = String(i);
-    button.textContent = `${i} ★`;
-    ratingContainer.appendChild(button);
-  }
-
-  this.interactionDiv.appendChild(ratingContainer);
-
-  ratingContainer.addEventListener('click', (event) => {
-    const target = event.target as HTMLButtonElement;
-    if (target.matches('.ivl-rating-button')) {
-      this.handleUserResponse(target.dataset.response, cue);
-      this.clearInteractions();
+    for (let i = 1; i <= 5; i++) {
+      const button = document.createElement('button');
+      button.className = 'ivl-rating-button';
+      button.dataset.response = String(i);
+      button.textContent = `${i} ★`;
+      ratingContainer.appendChild(button);
     }
-  });
-}
+
+    this.interactionDiv.appendChild(ratingContainer);
+
+    ratingContainer.addEventListener('click', (event) => {
+      const target = event.target as HTMLButtonElement;
+      if (target.matches('.ivl-rating-button')) {
+        this.handleUserResponse(target.dataset.response, cue);
+        this.clearInteractions();
+      }
+    });
+  }
 
   private renderChoiceInteraction(payload: ChoiceInteraction, cue: Cue) {
     if (!this.interactionDiv) return;
