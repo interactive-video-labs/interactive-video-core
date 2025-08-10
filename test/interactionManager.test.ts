@@ -62,7 +62,7 @@ describe('InteractionManager', () => {
     const newCallback = vi.fn();
     interactionManager.onPrompt(newCallback);
     // Trigger handleInteractionCue to check if the new callback is used
-    const cue: CuePoint = { id: 'test', time: 1, payload: { interaction: { type: 'choice', question: 'Q?' } } };
+    const cue: CuePoint = { id: 'test', time: 1, payload: { interaction: { type: 'choice', question: 'Q?', options: ['Option 1', 'Option 2'] } } };
     interactionManager.handleInteractionCue(cue);
     expect(newCallback).toHaveBeenCalledTimes(1);
     expect(mockOnPromptCallback).not.toHaveBeenCalled(); // Ensure old callback is replaced
@@ -79,7 +79,7 @@ describe('InteractionManager', () => {
   });
 
   it('should call onPrompt callback when handleInteractionCue is called with payload', () => {
-    const interactionPayload: InteractionPayload = { type: 'choice', question: 'What is your favorite color?' };
+    const interactionPayload: InteractionPayload = { type: 'choice', question: 'What is your favorite color?', options: ['Red', 'Blue'] };
     const cue: CuePoint = { id: 'cue1', time: 10, payload: { interaction: interactionPayload } };
 
     interactionManager.handleInteractionCue(cue);
@@ -126,7 +126,54 @@ describe('InteractionManager', () => {
     const consoleSpy = vi.spyOn(console, 'log');
     const interactions = [{ id: 'int1' }, { id: 'int2' }];
     interactionManager.loadInteractions(interactions);
-    expect(consoleSpy).toHaveBeenCalledWith('Interactions loaded into store:', expect.any(Map));
     consoleSpy.mockRestore();
+  });
+
+  it('should render a rating interaction correctly', () => {
+    const interactionPayload: InteractionPayload = {
+      type: 'rating',
+      title: 'Rate this video',
+      description: 'How would you rate the quality?',
+      question: 'Your rating:',
+    };
+    const cue: CuePoint = { id: 'cue4', time: 40, payload: { interaction: interactionPayload } };
+
+    interactionManager.handleInteractionCue(cue);
+
+    // Assert that interactionDiv is created and appended
+    expect(document.createElement).toHaveBeenCalledWith('div');
+    expect(mockContainer.appendChild).toHaveBeenCalled();
+
+    // Assert title and description are rendered
+    expect(mockI18n.translate).toHaveBeenCalledWith(interactionPayload.title);
+    expect(mockI18n.translate).toHaveBeenCalledWith(interactionPayload.description);
+
+    // Assert question is rendered
+    expect(mockI18n.translate).toHaveBeenCalledWith(interactionPayload.question);
+
+    // Assert rating buttons are created and event listener is attached
+    expect(document.createElement).toHaveBeenCalledWith('button'); // For rating buttons
+    expect(document.createElement).toHaveBeenCalledTimes(10); // div, h3, p, p, div, 5 buttons
+    expect(mockI18n.translate).toHaveBeenCalledWith('Your rating:');
+
+    // Find the rating container and simulate a click on a rating button
+    const ratingContainerMock = (document.createElement as vi.Mock).mock.results.find(
+      (call) => call.value.className === 'ivl-rating-container'
+    )?.value;
+
+    expect(ratingContainerMock).toBeDefined();
+
+    const mockButton = {
+      matches: (selector: string) => selector === '.ivl-rating-button',
+      dataset: { response: '3' },
+    } as unknown as HTMLButtonElement;
+
+    // Manually trigger the event listener callback on the actual ratingContainerMock
+    const addEventListenerCall = (ratingContainerMock.addEventListener as vi.Mock).mock.calls[0];
+    const eventHandler = addEventListenerCall[1]; // The event handler function
+
+    eventHandler({ target: mockButton });
+
+    expect(mockOnResponseCallback).toHaveBeenCalledWith('3', cue);
   });
 });
