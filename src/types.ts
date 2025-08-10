@@ -69,15 +69,42 @@ export type ChoiceVideoSegmentChangeOption = {
   video: string;
 };
 
-export type InteractionPayload = {
-  type: 'choice' | 'text' | 'rating' | 'choice-video-segment-change';
+
+type BaseInteraction = {
   title?: string;
   description?: string;
   question: string;
-  options?: (string | ChoiceVideoSegmentChangeOption)[];
+};
+
+export type ChoiceInteraction = BaseInteraction & {
+  type: 'choice';
+  options: string[];
   correctAnswer?: string;
   response?: Record<string, any>;
 };
+
+export type TextInteraction = BaseInteraction & {
+  type: 'text';
+  response?: Record<string, any>;
+};
+
+export type RatingInteraction = BaseInteraction & {
+  type: 'rating';
+  response?: Record<string, any>;
+};
+
+export type ChoiceVideoSegmentChangeInteraction = BaseInteraction & {
+  type: 'choice-video-segment-change';
+  options: ChoiceVideoSegmentChangeOption[];
+  response?: Record<string, any>;
+};
+
+export type InteractionPayload =
+  | ChoiceInteraction
+  | TextInteraction
+  | RatingInteraction
+  | ChoiceVideoSegmentChangeInteraction;
+
 
 export type PlayerEvent =
   | 'play'
