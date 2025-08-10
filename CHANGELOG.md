@@ -1,6 +1,18 @@
 # Changelog
 
 
+## v0.1.4 2025 08 11
+
+### Fixes
+*   InteractionManager test failures and improved test robustness.
+
+### Updates
+*   Update src/interactionManager.ts
+
+### Features
+*   Improve tsup build configuration
+*   Configure tsup for build process
+
 ## v0.1.2 2025 07 31
 
 ### Refactor
