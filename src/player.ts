@@ -8,10 +8,8 @@ import { I18n } from './i18n';
 import type {
   PlayerConfig,
   CuePoint,
-  InteractionSegment,
   AnalyticsEvent,
   PlayerState,
-  InteractionPayload,
   HTMLVideoElementWithControlsList,
   Translations,
   AnalyticsPayload,
