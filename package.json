@@ -41,7 +41,7 @@
   "bugs": {
     "url": "https://github.com/interactive-video-labs/interactive-video-core/issues"
   },
-  "packageManager": "pnpm@10.13.1",
+  "packageManager": "pnpm@10.14.0",
   "devDependencies": {
     "http-server": "^14.1.1",
     "jsdom": "^26.1.0",
