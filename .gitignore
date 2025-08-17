@@ -1,3 +1,4 @@
 node_modules/
 dist/
 coverage
+test-report.junit.xml
