@@ -45,4 +45,4 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           slug: interactive-video-labs/interactive-video-core
-          files: test-report.junit.xml
+          files: ./test-report.junit.xml
