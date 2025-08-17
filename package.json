@@ -19,7 +19,7 @@
     "build": "tsup",
     "dev": "tsup --watch",
     "test": "vitest run",
-    "clean": "rm -rf dist",
+    "clean": "rimraf dist",
     "prepare": "pnpm build",
     "serve": "http-server ."
   },
@@ -45,6 +45,7 @@
   "devDependencies": {
     "http-server": "^14.1.1",
     "jsdom": "^26.1.0",
+    "rimraf": "^6.0.1",
     "tsup": "^8.0.0",
     "typescript": "^5.4.5",
     "vitest": "^3.0.0"
