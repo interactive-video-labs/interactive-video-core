@@ -1,6 +1,6 @@
 {
   "name": "@interactive-video-labs/core",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "Framework-agnostic interactive video engine core",
   "main": "dist/index.cjs",
   "module": "dist/index.mjs",
