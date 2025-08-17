@@ -31,7 +31,7 @@ jobs:
         run: pnpm install --no-frozen-lockfile
 
       - name: Run tests with coverage
-        run: pnpm test -- --coverage --reporter=junit --outputFile=test-report.junit.xml
+        run: pnpm test
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v5
@@ -45,4 +45,4 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           slug: interactive-video-labs/interactive-video-core
-          files: test-report.junit.xml
+          files: ./test-report.junit.xml
