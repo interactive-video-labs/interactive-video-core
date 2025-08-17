@@ -31,13 +31,18 @@ jobs:
         run: pnpm install --no-frozen-lockfile
 
       - name: Run tests with coverage
-        run: pnpm test
+        run: pnpm test --coverage
+      
+      - name: List coverage files
+        run: ls -R ./coverage || echo "No coverage files found"
+
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           slug: interactive-video-labs/interactive-video-core
+          files: ./coverage/lcov.info
 
       - name: Upload test results to Codecov
         if: ${{ !cancelled() }}
