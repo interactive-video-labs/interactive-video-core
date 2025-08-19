@@ -80,10 +80,12 @@ jobs:
 
       - name: Create GitHub Release
         if: env.release_type != 'patch'
-        uses: actions/create-release@v1
+      - name: Create GitHub Release
+        if: env.release_type != 'patch'
+        uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ env.version }}
-          release_name: "Release v${{ env.version }}"
+          name: "Release v${{ env.version }}"
           body: ${{ env.notes }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
