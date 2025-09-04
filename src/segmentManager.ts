@@ -27,12 +27,16 @@ export class SegmentManager {
         this.videoElement.src = resumeSrc;
         this.videoElement.load();
 
-        this.videoElement.addEventListener('loadedmetadata', () => {
-          this.videoElement.currentTime = resumeTime;
-          this.videoElement.play().catch(err => {
-            console.error('Error resuming main video:', err);
-          });
-        }, { once: true });
+        this.videoElement.addEventListener(
+          'loadedmetadata',
+          () => {
+            this.videoElement.currentTime = resumeTime;
+            this.videoElement.play().catch((err) => {
+              console.error('Error resuming main video:', err);
+            });
+          },
+          { once: true },
+        );
       }
     });
   }
@@ -48,12 +52,16 @@ export class SegmentManager {
 
     this.videoElement.src = newSegmentUrl;
     this.videoElement.load();
-    this.videoElement.addEventListener('loadedmetadata', () => {
-      this.videoElement.play().catch(error => {
-        console.error('Error playing segment video:', error);
-      });
-      console.log('Playing segment video:', newSegmentUrl);
-    }, { once: true });
+    this.videoElement.addEventListener(
+      'loadedmetadata',
+      () => {
+        this.videoElement.play().catch((error) => {
+          console.error('Error playing segment video:', error);
+        });
+        console.log('Playing segment video:', newSegmentUrl);
+      },
+      { once: true },
+    );
   }
 
   /**

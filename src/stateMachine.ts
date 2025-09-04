@@ -1,11 +1,11 @@
-import { PlayerState } from './types'
+import { PlayerState } from './types';
 
 export type StateTransition<S extends string> = {
-  from: S
-  to: S
-  condition?: () => boolean
-  action?: () => void
-}
+  from: S;
+  to: S;
+  condition?: () => boolean;
+  action?: () => void;
+};
 
 /**
  * Manages state transitions for the player.
@@ -14,36 +14,32 @@ export type StateTransition<S extends string> = {
  * during transitions.
  */
 export class StateMachine<S extends string = PlayerState> {
-  private currentState: S
-  private transitions: StateTransition<S>[] = []
-
+  private currentState: S;
+  private transitions: StateTransition<S>[] = [];
 
   /**
    * Creates an instance of StateMachine.
    * @param initialState - The initial state of the state machine.
    */
   constructor(initialState: S) {
-    this.currentState = initialState
+    this.currentState = initialState;
   }
-
 
   /**
    * Gets the current state of the state machine.
    * @returns The current state.
    */
   public getState(): S {
-    return this.currentState
+    return this.currentState;
   }
-
 
   /**
    * Adds a new state transition to the state machine.
    * @param transition - The state transition to be added.
    */
   public addTransition(transition: StateTransition<S>): void {
-    this.transitions.push(transition)
+    this.transitions.push(transition);
   }
-
 
   /**
    * Transitions to a new state if the transition is valid.
@@ -53,26 +49,23 @@ export class StateMachine<S extends string = PlayerState> {
   public transitionTo(targetState: S): boolean {
     const valid = this.transitions.find(
       (t) =>
-        t.from === this.currentState &&
-        t.to === targetState &&
-        (!t.condition || t.condition())
-    )
+        t.from === this.currentState && t.to === targetState && (!t.condition || t.condition()),
+    );
 
     if (valid) {
-      valid.action?.()
-      this.currentState = targetState
-      return true
+      valid.action?.();
+      this.currentState = targetState;
+      return true;
     }
 
-    return false
+    return false;
   }
-
 
   /**
    * Resets the state machine to its initial state.
    * @param initialState - Optional initial state to reset to.
    */
   public reset(initialState?: S): void {
-    this.currentState = initialState || this.transitions[0]?.from || (this.currentState as S)
+    this.currentState = initialState || this.transitions[0]?.from || (this.currentState as S);
   }
 }

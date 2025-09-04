@@ -27,7 +27,7 @@ describe('SegmentManager', () => {
         keys: vi.fn(),
         values: vi.fn(),
         [Symbol.iterator]: vi.fn(),
-      }
+      },
     } as unknown as HTMLVideoElementWithControlsList;
 
     segmentManager = new SegmentManager(videoElement);
@@ -49,10 +49,16 @@ describe('SegmentManager', () => {
 
       expect(videoElement.src).toBe(segmentUrl);
       expect(videoElement.load).toHaveBeenCalled();
-      expect(videoElement.addEventListener).toHaveBeenCalledWith('loadedmetadata', expect.any(Function), { once: true });
+      expect(videoElement.addEventListener).toHaveBeenCalledWith(
+        'loadedmetadata',
+        expect.any(Function),
+        { once: true },
+      );
 
       // Simulate 'loadedmetadata' event
-      const loadedMetadataCallback = (videoElement.addEventListener as vi.Mock).mock.calls.find(call => call[0] === 'loadedmetadata')[1];
+      const loadedMetadataCallback = (videoElement.addEventListener as vi.Mock).mock.calls.find(
+        (call) => call[0] === 'loadedmetadata',
+      )[1];
       loadedMetadataCallback();
 
       expect(videoElement.play).toHaveBeenCalled();
@@ -66,19 +72,26 @@ describe('SegmentManager', () => {
       segmentManager.playSegment(segmentUrl);
 
       // Simulate 'loadedmetadata' for segment video to trigger the first play
-      const segmentLoadedMetadataCallback = (videoElement.addEventListener as vi.Mock).mock.calls.find(call => call[0] === 'loadedmetadata')[1];
+      const segmentLoadedMetadataCallback = (
+        videoElement.addEventListener as vi.Mock
+      ).mock.calls.find((call) => call[0] === 'loadedmetadata')[1];
       segmentLoadedMetadataCallback();
 
       // Simulate 'ended' event for the segment
-      const endedCallback = (videoElement.addEventListener as vi.Mock).mock.calls.find(call => call[0] === 'ended')[1];
+      const endedCallback = (videoElement.addEventListener as vi.Mock).mock.calls.find(
+        (call) => call[0] === 'ended',
+      )[1];
       endedCallback();
 
       expect(videoElement.src).toBe('main.mp4');
       expect(videoElement.load).toHaveBeenCalledTimes(2); // Once for segment, once for main
 
       // Simulate 'loadedmetadata' for resuming main video
-      const allLoadedMetadataCalls = (videoElement.addEventListener as vi.Mock).mock.calls.filter(call => call[0] === 'loadedmetadata');
-      const mainVideoLoadedMetadataCallback = allLoadedMetadataCalls[allLoadedMetadataCalls.length - 1][1];
+      const allLoadedMetadataCalls = (videoElement.addEventListener as vi.Mock).mock.calls.filter(
+        (call) => call[0] === 'loadedmetadata',
+      );
+      const mainVideoLoadedMetadataCallback =
+        allLoadedMetadataCalls[allLoadedMetadataCalls.length - 1][1];
       mainVideoLoadedMetadataCallback();
 
       expect(videoElement.currentTime).toBe(10);
@@ -86,14 +99,16 @@ describe('SegmentManager', () => {
     });
 
     it('should do nothing on ended event if not in a segment', () => {
-        const originalSrc = videoElement.src;
-        const originalTime = videoElement.currentTime;
-        const endedCallback = (videoElement.addEventListener as vi.Mock).mock.calls.find(call => call[0] === 'ended')[1];
-        endedCallback();
+      const originalSrc = videoElement.src;
+      const originalTime = videoElement.currentTime;
+      const endedCallback = (videoElement.addEventListener as vi.Mock).mock.calls.find(
+        (call) => call[0] === 'ended',
+      )[1];
+      endedCallback();
 
-        expect(videoElement.src).toBe(originalSrc);
-        expect(videoElement.currentTime).toBe(originalTime);
-        expect(videoElement.load).not.toHaveBeenCalled();
+      expect(videoElement.src).toBe(originalSrc);
+      expect(videoElement.currentTime).toBe(originalTime);
+      expect(videoElement.load).not.toHaveBeenCalled();
     });
   });
 

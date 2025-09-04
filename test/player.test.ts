@@ -96,7 +96,11 @@ describe('IVLabsPlayer', () => {
 
   it('should initialize dependencies correctly and register cues', () => {
     expect(StateMachine).toHaveBeenCalledWith('idle');
-    expect(InteractionManager).toHaveBeenCalledWith(mockPlayerContainer, expect.any(Object), expect.any(Object));
+    expect(InteractionManager).toHaveBeenCalledWith(
+      mockPlayerContainer,
+      expect.any(Object),
+      expect.any(Object),
+    );
     expect(CueHandler).toHaveBeenCalledWith(videoElement);
     expect(Analytics).toHaveBeenCalledTimes(1);
     expect(mockCueHandlerInstance.registerCues).toHaveBeenCalledWith(config.cues);
@@ -112,9 +116,15 @@ describe('IVLabsPlayer', () => {
 
     beforeEach(() => {
       // Extract event listener callbacks
-      playCallback = (videoElement.addEventListener as vi.Mock).mock.calls.find(call => call[0] === 'play')[1];
-      pauseCallback = (videoElement.addEventListener as vi.Mock).mock.calls.find(call => call[0] === 'pause')[1];
-      const endedCalls = (videoElement.addEventListener as vi.Mock).mock.calls.filter(call => call[0] === 'ended');
+      playCallback = (videoElement.addEventListener as vi.Mock).mock.calls.find(
+        (call) => call[0] === 'play',
+      )[1];
+      pauseCallback = (videoElement.addEventListener as vi.Mock).mock.calls.find(
+        (call) => call[0] === 'pause',
+      )[1];
+      const endedCalls = (videoElement.addEventListener as vi.Mock).mock.calls.filter(
+        (call) => call[0] === 'ended',
+      );
       endedCallback = endedCalls[endedCalls.length - 1][1];
     });
 
@@ -141,12 +151,15 @@ describe('IVLabsPlayer', () => {
   });
 
   it('should change video segment on interaction response with nextSegment', () => {
-    const onResponseCallback = (mockInteractionManagerInstance.onResponse as vi.Mock).mock.calls[0][0];
+    const onResponseCallback = (mockInteractionManagerInstance.onResponse as vi.Mock).mock
+      .calls[0][0];
     const initialSrc = videoElement.src;
     onResponseCallback({ nextSegment: 'test2.mp4' }, { id: 'testCue' });
 
     // Capture loadedmetadata callback after onResponse is called
-    const loadedmetadataCallback = (videoElement.addEventListener as vi.Mock).mock.calls.find(call => call[0] === 'loadedmetadata')[1];
+    const loadedmetadataCallback = (videoElement.addEventListener as vi.Mock).mock.calls.find(
+      (call) => call[0] === 'loadedmetadata',
+    )[1];
 
     // Simulate loadedmetadata for segment video
     loadedmetadataCallback();
@@ -156,8 +169,11 @@ describe('IVLabsPlayer', () => {
   });
 
   it('should resume main video after segment video ends', () => {
-    const onResponseCallback = (mockInteractionManagerInstance.onResponse as vi.Mock).mock.calls[0][0];
-    const endedCallback = (videoElement.addEventListener as vi.Mock).mock.calls.find(call => call[0] === 'ended')[1];
+    const onResponseCallback = (mockInteractionManagerInstance.onResponse as vi.Mock).mock
+      .calls[0][0];
+    const endedCallback = (videoElement.addEventListener as vi.Mock).mock.calls.find(
+      (call) => call[0] === 'ended',
+    )[1];
 
     // Set initial main video state
     videoElement.src = 'main-video.mp4';
@@ -169,7 +185,9 @@ describe('IVLabsPlayer', () => {
     onResponseCallback({ nextSegment: 'segment-video.mp4' }, { id: 'testCue' });
 
     // Capture loadedmetadata callback after onResponse is called
-    const loadedmetadataCallback = (videoElement.addEventListener as vi.Mock).mock.calls.find(call => call[0] === 'loadedmetadata')[1];
+    const loadedmetadataCallback = (videoElement.addEventListener as vi.Mock).mock.calls.find(
+      (call) => call[0] === 'loadedmetadata',
+    )[1];
 
     // Simulate loadedmetadata for segment video
     loadedmetadataCallback();
@@ -178,7 +196,9 @@ describe('IVLabsPlayer', () => {
     endedCallback();
 
     // Simulate loadedmetadata for main video after it's restored
-    const mainVideoLoadedMetadataCallback = (videoElement.addEventListener as vi.Mock).mock.calls.find(call => call[0] === 'loadedmetadata' && call[2]?.once === true)[1];
+    const mainVideoLoadedMetadataCallback = (
+      videoElement.addEventListener as vi.Mock
+    ).mock.calls.find((call) => call[0] === 'loadedmetadata' && call[2]?.once === true)[1];
     mainVideoLoadedMetadataCallback();
 
     // Expect main video to be restored and played
@@ -188,7 +208,11 @@ describe('IVLabsPlayer', () => {
   });
 
   it('should handle cue triggered event by transitioning state and handling interaction', () => {
-    const mockCue: CuePoint = { id: 'testCue', time: 10, payload: { interaction: { type: 'choice', question: 'test' } } };
+    const mockCue: CuePoint = {
+      id: 'testCue',
+      time: 10,
+      payload: { interaction: { type: 'choice', question: 'test' } },
+    };
     // Simulate cueHandler.onCue callback
     const onCueCallback = (mockCueHandlerInstance.onCue as vi.Mock).mock.calls[0][0];
     onCueCallback(mockCue);
@@ -225,9 +249,6 @@ describe('IVLabsPlayer', () => {
     player.destroy();
     expect(mockCueHandlerInstance.destroy).toHaveBeenCalledTimes(1);
     expect(mockInteractionManagerInstance.destroy).toHaveBeenCalledTimes(1);
-    expect(mockAnalyticsInstance.track).toHaveBeenCalledWith(
-      'onSessionEnd',
-      expect.any(Object),
-    );
+    expect(mockAnalyticsInstance.track).toHaveBeenCalledWith('onSessionEnd', expect.any(Object));
   });
 });

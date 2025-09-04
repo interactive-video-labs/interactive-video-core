@@ -62,7 +62,13 @@ describe('InteractionManager', () => {
     const newCallback = vi.fn();
     interactionManager.onPrompt(newCallback);
     // Trigger handleInteractionCue to check if the new callback is used
-    const cue: CuePoint = { id: 'test', time: 1, payload: { interaction: { type: 'choice', question: 'Q?', options: ['Option 1', 'Option 2'] } } };
+    const cue: CuePoint = {
+      id: 'test',
+      time: 1,
+      payload: {
+        interaction: { type: 'choice', question: 'Q?', options: ['Option 1', 'Option 2'] },
+      },
+    };
     interactionManager.handleInteractionCue(cue);
     expect(newCallback).toHaveBeenCalledTimes(1);
     expect(mockOnPromptCallback).not.toHaveBeenCalled(); // Ensure old callback is replaced
@@ -79,7 +85,11 @@ describe('InteractionManager', () => {
   });
 
   it('should call onPrompt callback when handleInteractionCue is called with payload', () => {
-    const interactionPayload: InteractionPayload = { type: 'choice', question: 'What is your favorite color?', options: ['Red', 'Blue'] };
+    const interactionPayload: InteractionPayload = {
+      type: 'choice',
+      question: 'What is your favorite color?',
+      options: ['Red', 'Blue'],
+    };
     const cue: CuePoint = { id: 'cue1', time: 10, payload: { interaction: interactionPayload } };
 
     interactionManager.handleInteractionCue(cue);
@@ -158,7 +168,7 @@ describe('InteractionManager', () => {
 
     // Find the rating container and simulate a click on a rating button
     const ratingContainerMock = (document.createElement as vi.Mock).mock.results.find(
-      (call) => call.value.className === 'ivl-rating-container'
+      (call) => call.value.className === 'ivl-rating-container',
     )?.value;
 
     expect(ratingContainerMock).toBeDefined();

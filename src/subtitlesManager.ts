@@ -41,10 +41,8 @@ export class SubtitlesManager {
       const cues = this.cuePoints.map((cueConfig) => ({
         ...cueConfig,
         time:
-          trackCues.find(
-            (cue) =>
-              (cue as ExtendedTextTrackCue)?.text === cueConfig.subtitleText
-          )?.startTime || 0,
+          trackCues.find((cue) => (cue as ExtendedTextTrackCue)?.text === cueConfig.subtitleText)
+            ?.startTime || 0,
       }));
       callback(cues);
     });

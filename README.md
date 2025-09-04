@@ -1,4 +1,5 @@
 # @interactive-video-labs/core
+
 <p align="center">
   <img src="https://raw.githubusercontent.com/interactive-video-labs/docs/main/logo.svg" width="200px" alt="Interactive Video Labs Logo" />
 </p>
@@ -10,8 +11,6 @@
     <img src="https://github.com/interactive-video-labs/interactive-video-core/actions/workflows/release.yml/badge.svg" alt="Build Status" />
   </a>
 </p>
-
-
 
 Welcome to `@interactive-video-labs/core` — the framework-agnostic TypeScript module powering interactive video experiences. This engine is designed to be lightweight, extendable, and usable across React, Vue, or plain JavaScript apps.
 
@@ -40,87 +39,91 @@ For a basic working example, refer to the [`examples/index.html`](examples/index
 Here's a simplified snippet of how you might set up the player:
 
 ```typescript
-import { IVLabsPlayer, InMemoryDecisionAdapter, LocalStorageDecisionAdapter } from '@interactive-video-labs/core';
+import {
+  IVLabsPlayer,
+  InMemoryDecisionAdapter,
+  LocalStorageDecisionAdapter,
+} from '@interactive-video-labs/core';
 
 // Initialize a decision adapter (e.g., for in-memory storage or local storage)
 // const decisionAdapter = new InMemoryDecisionAdapter();
 const decisionAdapter = new LocalStorageDecisionAdapter();
 
 const playerConfig = {
-    videoUrl: 'https://interactive-video-labs.github.io/assets/sample-video.mp4',
-    cues: [
+  videoUrl: 'https://interactive-video-labs.github.io/assets/sample-video.mp4',
+  cues: [
     {
-        id: 'intro',
-        time: 2,
-        label: 'Introduction',
-        payload: { message: 'Welcome!' }
+      id: 'intro',
+      time: 2,
+      label: 'Introduction',
+      payload: { message: 'Welcome!' },
     },
     {
-        id: 'question1',
-        time: 5,
-        label: 'Question 1',
-        payload: {
-            interaction: {
-                type: 'choice',
-                title: 'Quick Question',
-                description: 'Please select the correct answer.',
-                question: 'What is 2+2?',
-                options: ['3', '4', '5'],
-                correctAnswer: '4'
-            }
-        }
+      id: 'question1',
+      time: 5,
+      label: 'Question 1',
+      payload: {
+        interaction: {
+          type: 'choice',
+          title: 'Quick Question',
+          description: 'Please select the correct answer.',
+          question: 'What is 2+2?',
+          options: ['3', '4', '5'],
+          correctAnswer: '4',
+        },
+      },
     },
     {
-        id: 'segmentChange',
-        time: 10,
-        label: 'Segment Change',
-        payload: {
-            interaction: {
-                type: 'choice-video-segment-change',
-                title: 'Choose your path',
-                description: 'Select a video segment to jump to.',
-                question: 'Where would you like to go?',
-                options: [
-                    {
-                        level: 'Segment A',
-                        video: 'https://interactive-video-labs.github.io/assets/sample-interaction-1.mp4'
-                    },
-                    {
-                        level: 'Segment B',
-                        video: 'https://interactive-video-labs.github.io/assets/sample-interaction-2.mp4'
-                    }
-                ]
-            }
-        }
+      id: 'segmentChange',
+      time: 10,
+      label: 'Segment Change',
+      payload: {
+        interaction: {
+          type: 'choice-video-segment-change',
+          title: 'Choose your path',
+          description: 'Select a video segment to jump to.',
+          question: 'Where would you like to go?',
+          options: [
+            {
+              level: 'Segment A',
+              video: 'https://interactive-video-labs.github.io/assets/sample-interaction-1.mp4',
+            },
+            {
+              level: 'Segment B',
+              video: 'https://interactive-video-labs.github.io/assets/sample-interaction-2.mp4',
+            },
+          ],
+        },
+      },
     },
     {
-        id: 'midpoint',
-        time: 8,
-        label: 'Midpoint',
-        payload: { message: 'Halfway there!' }
+      id: 'midpoint',
+      time: 8,
+      label: 'Midpoint',
+      payload: { message: 'Halfway there!' },
     },
     {
-        id: 'question2',
-        time: 12,
-        label: 'Question 2',
-        payload: {
-            interaction: {
-                type: 'text',
-                title: 'Your Information',
-                description: 'Please enter your name below.',
-                question: 'Your name?'
-            }
-        }
+      id: 'question2',
+      time: 12,
+      label: 'Question 2',
+      payload: {
+        interaction: {
+          type: 'text',
+          title: 'Your Information',
+          description: 'Please enter your name below.',
+          question: 'Your name?',
+        },
+      },
     },
     {
-        id: 'end',
-        time: 15,
-        label: 'End',
-        payload: { message: 'Thanks for watching!' }
-    }
-],
-    initialState: 'idle',
-    decisionAdapter: decisionAdapter, // Pass the decision adapter to the player config
+      id: 'end',
+      time: 15,
+      label: 'End',
+      payload: { message: 'Thanks for watching!' },
+    },
+  ],
+  initialState: 'idle',
+  decisionAdapter: decisionAdapter, // Pass the decision adapter to the player config
 };
 
 // Assuming you have a div with id="player-container" in your HTML
@@ -134,8 +137,8 @@ player.init();
 
 The `@interactive-video-labs/core` module now supports tracking and persisting user decisions made during interactions. This is achieved through the `DecisionAdapter` interface, which allows you to define how decisions are stored and retrieved. Two concrete implementations are provided:
 
-*   **`InMemoryDecisionAdapter`**: Stores decisions in memory. This is useful for temporary tracking within a single session.
-*   **`LocalStorageDecisionAdapter`**: Stores decisions in the browser's local storage, providing persistence across sessions.
+- **`InMemoryDecisionAdapter`**: Stores decisions in memory. This is useful for temporary tracking within a single session.
+- **`LocalStorageDecisionAdapter`**: Stores decisions in the browser's local storage, providing persistence across sessions.
 
 To use decision tracking, simply instantiate one of the adapters and pass it to the `IVLabsPlayer` configuration:
 
@@ -145,8 +148,8 @@ import { IVLabsPlayer, LocalStorageDecisionAdapter } from '@interactive-video-la
 const decisionAdapter = new LocalStorageDecisionAdapter();
 
 const playerConfig = {
-    // ... other player configurations
-    decisionAdapter: decisionAdapter,
+  // ... other player configurations
+  decisionAdapter: decisionAdapter,
 };
 
 const player = new IVLabsPlayer('player-container', playerConfig);
@@ -154,39 +157,37 @@ player.init();
 
 // To retrieve decision history:
 async function getHistory() {
-    const history = await decisionAdapter.getDecisionHistory();
-    console.log('Decision History:', history);
+  const history = await decisionAdapter.getDecisionHistory();
+  console.log('Decision History:', history);
 }
 
 // To clear decision history:
 async function clearHistory() {
-    await decisionAdapter.clearDecisionHistory();
-    console.log('Decision History cleared.');
+  await decisionAdapter.clearDecisionHistory();
+  console.log('Decision History cleared.');
 }
 ```
 
 This allows you to easily integrate decision tracking into your interactive video experiences, enabling features like personalized content, progress saving, or analytics based on user choices.
 
-
-
 ## ✨ Features
 
 The `@interactive-video-labs/core` engine includes the following core functionalities:
 
-*   **Core Player (`IVLabsPlayer`):** Orchestrates video playback, cue handling, interactions, and analytics.
-*   **State Machine:** Manages player state transitions (e.g., idle, playing, waitingForInteraction).
-*   **Cue Handler:** Manages and triggers cue points based on video time updates.
-*   **Interaction Manager:** Renders and manages various interaction types (choice, text, video segment changes) and handles user responses.
-*   **Analytics System:** Provides a flexible hook system for tracking player and interaction events.
-*   **Segment Manager:** Handles seamless transitions between different video segments.
-*   **Centralized Types:** Defines all core types and interfaces for consistency across the module.
-*   **Basic HTML Demo:** A raw HTML demo (`examples/index.html`) to validate core functionality without frameworks.
-*   **Testing Framework:** Utilizes Vitest for comprehensive unit testing.
-*   **Localization Support:** Enabled for broader audience reach.
-*   **Subtitle-based Cue Generation:** Supports generating cues from subtitles.
-*   **Multi-segment Video Lessons:** Capability to support video content divided into multiple segments.
-*   **Build and Publish Pipeline:** Configured for NPM publishing.
-*   **Decision Tracking and Persistence:** Supports tracking and persisting user decisions using configurable adapters (e.g., `InMemoryDecisionAdapter`, `LocalStorageDecisionAdapter`).
+- **Core Player (`IVLabsPlayer`):** Orchestrates video playback, cue handling, interactions, and analytics.
+- **State Machine:** Manages player state transitions (e.g., idle, playing, waitingForInteraction).
+- **Cue Handler:** Manages and triggers cue points based on video time updates.
+- **Interaction Manager:** Renders and manages various interaction types (choice, text, video segment changes) and handles user responses.
+- **Analytics System:** Provides a flexible hook system for tracking player and interaction events.
+- **Segment Manager:** Handles seamless transitions between different video segments.
+- **Centralized Types:** Defines all core types and interfaces for consistency across the module.
+- **Basic HTML Demo:** A raw HTML demo (`examples/index.html`) to validate core functionality without frameworks.
+- **Testing Framework:** Utilizes Vitest for comprehensive unit testing.
+- **Localization Support:** Enabled for broader audience reach.
+- **Subtitle-based Cue Generation:** Supports generating cues from subtitles.
+- **Multi-segment Video Lessons:** Capability to support video content divided into multiple segments.
+- **Build and Publish Pipeline:** Configured for NPM publishing.
+- **Decision Tracking and Persistence:** Supports tracking and persisting user decisions using configurable adapters (e.g., `InMemoryDecisionAdapter`, `LocalStorageDecisionAdapter`).
 
 ---
 
