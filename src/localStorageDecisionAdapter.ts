@@ -34,18 +34,17 @@ export class LocalStorageDecisionAdapter implements DecisionAdapter {
       console.error('Failed to get decision history from localStorage:', error);
       throw new Error('Decision retrieval failed');
     }
-  
   }
 
   /**
    * Clears the decision history in local storage.
    */
- async clearDecisionHistory(): Promise<void> {  
-    try {  
-      localStorage.removeItem(this.STORAGE_KEY);  
-    } catch (error) {  
-      console.error('Failed to clear decision history from localStorage:', error);  
-      throw new Error('Failed to clear decision history');  
-    }  
-  }  
+  async clearDecisionHistory(): Promise<void> {
+    try {
+      localStorage.removeItem(this.STORAGE_KEY);
+    } catch (error) {
+      console.error('Failed to clear decision history from localStorage:', error);
+      throw new Error('Failed to clear decision history');
+    }
+  }
 }

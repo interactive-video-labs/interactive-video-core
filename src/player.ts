@@ -42,16 +42,13 @@ export class IVLabsPlayer {
 
   constructor(target: string, config: PlayerConfig) {
     const targetElement = document.getElementById(target);
-    if (!targetElement)
-      throw new Error(`Target container with ID "${target}" not found.`);
+    if (!targetElement) throw new Error(`Target container with ID "${target}" not found.`);
 
     this.config = config;
     this.videoContainer = document.createElement('div');
     this.videoContainer.className = 'ivl-player-container';
 
-    this.videoElement = document.createElement(
-      'video'
-    ) as HTMLVideoElementWithControlsList;
+    this.videoElement = document.createElement('video') as HTMLVideoElementWithControlsList;
     this.videoElement.controls = true;
     this.videoElement.controlsList = 'nodownload';
 
@@ -60,10 +57,7 @@ export class IVLabsPlayer {
       this.subtitlesElement.src = config.subtitlesUrl;
       this.subtitlesElement.kind = 'subtitles';
       this.subtitlesElement.default = true;
-      this.subtitlesManager = new SubtitlesManager(
-        this.subtitlesElement,
-        config.cues
-      );
+      this.subtitlesManager = new SubtitlesManager(this.subtitlesElement, config.cues);
       this.videoElement.appendChild(this.subtitlesElement);
       this.subtitlesManager.onLoad((cues) => {
         this.start(cues);
@@ -78,9 +72,7 @@ export class IVLabsPlayer {
 
     this.i18n = new I18n();
     if (config.translations) {
-      for (const [locale, translations] of Object.entries(
-        config.translations
-      )) {
+      for (const [locale, translations] of Object.entries(config.translations)) {
         this.i18n.load(locale, translations);
       }
     }
@@ -100,7 +92,7 @@ export class IVLabsPlayer {
     this.interactionManager = new InteractionManager(
       this.videoContainer,
       this.i18n,
-      this.decisionAdapter
+      this.decisionAdapter,
     );
     this.cueHandler = new CueHandler(this.videoElement);
     this.segmentManager = new SegmentManager(this.videoElement);
@@ -111,8 +103,7 @@ export class IVLabsPlayer {
 
   private start(cues?: CuePoint[]) {
     this.cueHandler.registerCues(cues || []);
-    if (!this.config.videoUrl)
-      throw new Error('videoUrl must be provided in the PlayerConfig.');
+    if (!this.config.videoUrl) throw new Error('videoUrl must be provided in the PlayerConfig.');
     this.videoElement.src = this.config.videoUrl;
     this.bindEvents();
     this.cueHandler.start();
@@ -142,7 +133,7 @@ export class IVLabsPlayer {
         this.stateMachine.transitionTo('playing');
       }
     });
-
+    //eslint-disable-next-line @typescript-eslint/no-explicit-any
     this.interactionManager.onResponse((response: any, cue: CuePoint) => {
       this.analytics.track('onInteractionSelected', {
         event: 'onInteractionSelected',
@@ -228,7 +219,7 @@ export class IVLabsPlayer {
    */
   public on(
     event: AnalyticsEvent,
-    callback: (payload: AnalyticsPayload | undefined) => void
+    callback: (payload: AnalyticsPayload | undefined) => void,
   ): void {
     this.analytics.on(event, (event, payload) => callback(payload));
   }

@@ -13,6 +13,7 @@ export type PlayerConfig = {
   translations?: Record<string, Translations>;
   autoplay?: boolean;
   loop?: boolean;
+  //eslint-disable-next-line @typescript-eslint/no-explicit-any
   analyticsOptions?: Record<string, any>;
   interactions?: InteractionPayload[];
   initialState?: PlayerState;
@@ -27,12 +28,14 @@ export type CuePoint = {
   time: number; // in seconds
   subtitleText?: string;
   label?: string;
+  //eslint-disable-next-line @typescript-eslint/no-explicit-any
   payload?: any; // arbitrary metadata for interaction
 };
 
 export type InteractionResponse = {
   cueId: string;
   choice: string;
+  //eslint-disable-next-line @typescript-eslint/no-explicit-any
   metadata?: Record<string, any>;
 };
 
@@ -57,6 +60,7 @@ export type AnalyticsPayload = {
   event: AnalyticsEvent;
   timestamp: number;
   cueId?: string;
+  //eslint-disable-next-line @typescript-eslint/no-explicit-any
   data?: any;
 };
 
@@ -69,7 +73,6 @@ export type ChoiceVideoSegmentChangeOption = {
   video: string;
 };
 
-
 type BaseInteraction = {
   title?: string;
   description?: string;
@@ -80,22 +83,26 @@ export type ChoiceInteraction = BaseInteraction & {
   type: 'choice';
   options: string[];
   correctAnswer?: string;
+  //eslint-disable-next-line @typescript-eslint/no-explicit-any
   response?: Record<string, any>;
 };
 
 export type TextInteraction = BaseInteraction & {
   type: 'text';
+  //eslint-disable-next-line @typescript-eslint/no-explicit-any
   response?: Record<string, any>;
 };
 
 export type RatingInteraction = BaseInteraction & {
   type: 'rating';
+  //eslint-disable-next-line @typescript-eslint/no-explicit-any
   response?: Record<string, any>;
 };
 
 export type ChoiceVideoSegmentChangeInteraction = BaseInteraction & {
   type: 'choice-video-segment-change';
   options: ChoiceVideoSegmentChangeOption[];
+  //eslint-disable-next-line @typescript-eslint/no-explicit-any
   response?: Record<string, any>;
 };
 
@@ -104,7 +111,6 @@ export type InteractionPayload =
   | TextInteraction
   | RatingInteraction
   | ChoiceVideoSegmentChangeInteraction;
-
 
 export type PlayerEvent =
   | 'play'
@@ -123,12 +129,7 @@ export type InteractionSegment = {
   triggerTime?: number;
 };
 
-export type PlayerState =
-  | 'idle'
-  | 'playing'
-  | 'waitingForInteraction'
-  | 'ended'
-  | 'error';
+export type PlayerState = 'idle' | 'playing' | 'waitingForInteraction' | 'ended' | 'error';
 
 export interface HTMLVideoElementWithControlsList extends HTMLVideoElement {
   controlsList: string;
@@ -138,6 +139,7 @@ export type Decision = {
   cueId: string;
   choice: string;
   timestamp: number;
+  //eslint-disable-next-line @typescript-eslint/no-explicit-any
   metadata?: Record<string, any>;
 };
 

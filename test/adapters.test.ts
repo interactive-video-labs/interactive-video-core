@@ -11,12 +11,12 @@ describe('InMemoryDecisionAdapter', () => {
   });
 
   it('should save and retrieve decisions', async () => {
-    const decision1: Decision = {  
-      cueId: 'cue1',  
-      choice: 'linear',  
-      timestamp: Date.now(),  
-      metadata: { reason: 'test' },  
-    }; 
+    const decision1: Decision = {
+      cueId: 'cue1',
+      choice: 'linear',
+      timestamp: Date.now(),
+      metadata: { reason: 'test' },
+    };
     const decision2: Decision = {
       cueId: 'cue2',
       choice: 'nonlinear',
@@ -86,10 +86,16 @@ describe('LocalStorageDecisionAdapter', () => {
     };
 
     await adapter.saveDecision(decision1);
-    expect(localStorage.setItem).toHaveBeenCalledWith(MOCK_STORAGE_KEY, JSON.stringify([decision1]));
+    expect(localStorage.setItem).toHaveBeenCalledWith(
+      MOCK_STORAGE_KEY,
+      JSON.stringify([decision1]),
+    );
 
     await adapter.saveDecision(decision2);
-    expect(localStorage.setItem).toHaveBeenCalledWith(MOCK_STORAGE_KEY, JSON.stringify([decision1, decision2]));
+    expect(localStorage.setItem).toHaveBeenCalledWith(
+      MOCK_STORAGE_KEY,
+      JSON.stringify([decision1, decision2]),
+    );
 
     const history = await adapter.getDecisionHistory();
     expect(history).toEqual([decision1, decision2]);

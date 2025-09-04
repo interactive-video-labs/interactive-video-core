@@ -46,7 +46,10 @@ describe('CueHandler', () => {
 
   it('should remove timeupdate listener on stop', () => {
     cueHandler.stop();
-    expect(videoElement.removeEventListener).toHaveBeenCalledWith('timeupdate', expect.any(Function));
+    expect(videoElement.removeEventListener).toHaveBeenCalledWith(
+      'timeupdate',
+      expect.any(Function),
+    );
   });
 
   it('should trigger cues at the correct time', () => {
@@ -84,9 +87,7 @@ describe('CueHandler', () => {
   });
 
   it('should not trigger the same cue multiple times', () => {
-    const cues: CuePoint[] = [
-      { id: 'cue1', time: 5 },
-    ];
+    const cues: CuePoint[] = [{ id: 'cue1', time: 5 }];
     cueHandler.registerCues(cues);
 
     Object.defineProperty(videoElement, 'currentTime', { value: 5 });
@@ -101,9 +102,7 @@ describe('CueHandler', () => {
   });
 
   it('should clear triggered cues on destroy', () => {
-    const cues: CuePoint[] = [
-      { id: 'cue1', time: 5 },
-    ];
+    const cues: CuePoint[] = [{ id: 'cue1', time: 5 }];
     cueHandler.registerCues(cues);
 
     Object.defineProperty(videoElement, 'currentTime', { value: 5 });
@@ -118,12 +117,10 @@ describe('CueHandler', () => {
   });
 
   it('should call loadCues correctly', () => {
-    const cues: CuePoint[] = [
-      { id: 'cue1', time: 5 },
-    ];
+    const cues: CuePoint[] = [{ id: 'cue1', time: 5 }];
     const registerCuesSpy = vi.spyOn(cueHandler, 'registerCues');
     cueHandler.loadCues(cues);
     expect(registerCuesSpy).toHaveBeenCalledWith(cues);
-    expect(videoElement.addEventListener).toHaveBeenCalledWith("timeupdate", expect.any(Function));
+    expect(videoElement.addEventListener).toHaveBeenCalledWith('timeupdate', expect.any(Function));
   });
 });

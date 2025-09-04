@@ -52,31 +52,35 @@ To set up your development environment, follow these steps:
 
 Here are the essential commands for development:
 
--   **Run Demo Project:**
-    ```bash
-    pnpm serve
-    ```
-    This command starts a local server to serve the `examples/index.html` file, allowing you to test core functionality in a browser. Make sure to run `pnpm build` first if you've made changes to the source code.
+- **Run Demo Project:**
 
--   **Development with Live Reloading:**
-    ```bash
-    pnpm dev
-    ```
-    This command watches for changes in the source code and automatically rebuilds the package. You would typically run this in conjunction with `pnpm serve` to see your changes reflected live in the demo.
+  ```bash
+  pnpm serve
+  ```
 
--   **Build Core Package:**
-    ```bash
-    pnpm build
-    ```
-    This command compiles the TypeScript source code into JavaScript, generating ESM, CJS, and UMD builds, along with TypeScript type definitions (`.d.ts` files) in the `dist/` directory.
+  This command starts a local server to serve the `examples/index.html` file, allowing you to test core functionality in a browser. Make sure to run `pnpm build` first if you've made changes to the source code.
 
--   **Run Unit Tests:**
-    ```bash
-    pnpm test
-    ```
-    This command executes the unit tests located in the `test/` directory using Vitest. Ensure all tests pass before submitting changes.
+- **Development with Live Reloading:**
 
+  ```bash
+  pnpm dev
+  ```
 
+  This command watches for changes in the source code and automatically rebuilds the package. You would typically run this in conjunction with `pnpm serve` to see your changes reflected live in the demo.
+
+- **Build Core Package:**
+
+  ```bash
+  pnpm build
+  ```
+
+  This command compiles the TypeScript source code into JavaScript, generating ESM, CJS, and UMD builds, along with TypeScript type definitions (`.d.ts` files) in the `dist/` directory.
+
+- **Run Unit Tests:**
+  ```bash
+  pnpm test
+  ```
+  This command executes the unit tests located in the `test/` directory using Vitest. Ensure all tests pass before submitting changes.
 
 ## 🐛 Debugging
 
@@ -100,11 +104,11 @@ The player includes a flexible analytics hook system that allows you to track ke
 
 The following events are emitted by the player:
 
--   `onCueEnter`: Fired when a cue point is reached.
--   `onPromptShown`: Fired when an interaction prompt is displayed to the user.
--   `onInteractionSelected`: Fired when the user makes a choice in an interaction.
--   `onBranchJump`: Fired when the video branches to a new segment.
--   `onSessionEnd`: Fired when the player is destroyed.
+- `onCueEnter`: Fired when a cue point is reached.
+- `onPromptShown`: Fired when an interaction prompt is displayed to the user.
+- `onInteractionSelected`: Fired when the user makes a choice in an interaction.
+- `onBranchJump`: Fired when the video branches to a new segment.
+- `onSessionEnd`: Fired when the player is destroyed.
 
 ### Usage
 

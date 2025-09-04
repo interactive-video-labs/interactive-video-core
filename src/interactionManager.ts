@@ -12,6 +12,7 @@ import {
 import { I18n } from './i18n';
 
 type InteractionHandler = (payload: InteractionPayload, cue: Cue) => void;
+//eslint-disable-next-line @typescript-eslint/no-explicit-any
 type ResponseHandler = (response: any, cue: Cue) => void;
 
 export class InteractionManager {
@@ -26,22 +27,20 @@ export class InteractionManager {
   private interactionRenderers = {
     choice: this.renderChoiceInteraction.bind(this) as (
       payload: ChoiceInteraction,
-      cue: Cue
+      cue: Cue,
     ) => void,
-    text: this.renderTextInteraction.bind(this) as (
-      payload: TextInteraction,
-      cue: Cue
-    ) => void,
+    text: this.renderTextInteraction.bind(this) as (payload: TextInteraction, cue: Cue) => void,
     rating: this.renderRatingInteraction.bind(this) as (
       payload: RatingInteraction,
-      cue: Cue
+      cue: Cue,
     ) => void,
-    'choice-video-segment-change': this.renderChoiceVideoSegmentChangeInteraction.bind(
-      this
-    ) as (payload: ChoiceVideoSegmentChangeInteraction, cue: Cue) => void,
+    'choice-video-segment-change': this.renderChoiceVideoSegmentChangeInteraction.bind(this) as (
+      payload: ChoiceVideoSegmentChangeInteraction,
+      cue: Cue,
+    ) => void,
     default: this.renderDefaultInteraction.bind(this) as (
       payload: InteractionPayload,
-      cue: Cue
+      cue: Cue,
     ) => void,
   };
 
@@ -93,13 +92,12 @@ export class InteractionManager {
       this.interactionDiv.appendChild(desc);
     }
 
-    const renderer =
-      this.interactionRenderers[payload.type] || this.interactionRenderers.default;
+    const renderer = this.interactionRenderers[payload.type] || this.interactionRenderers.default;
+    //eslint-disable-next-line @typescript-eslint/no-explicit-any
     renderer(payload as any, cue);
 
     this.container.appendChild(this.interactionDiv);
   }
-
 
   private renderRatingInteraction(payload: RatingInteraction, cue: Cue): void {
     if (!this.interactionDiv) return;
@@ -161,7 +159,7 @@ export class InteractionManager {
 
   private renderChoiceVideoSegmentChangeInteraction(
     payload: ChoiceVideoSegmentChangeInteraction,
-    cue: Cue
+    cue: Cue,
   ) {
     if (!this.interactionDiv) return;
 
@@ -234,7 +232,7 @@ export class InteractionManager {
     this.interactionDiv?.remove();
     this.interactionDiv = null;
   }
-
+  //eslint-disable-next-line @typescript-eslint/no-explicit-any
   public handleUserResponse(response: any, cue: Cue) {
     const payload = cue.payload?.interaction;
 
