@@ -163,7 +163,7 @@
 - Merge pull request #17 from taj54/main
 - //github.com/taj54/core
 - Merge pull request #16 from taj54/main
-- Ensure VIDEO_ENDED event is tracked    2    3 The `VIDEO_ENDED` event was not being tracked due to a missing event listener in `src/player.ts`. This commit adds the `ended` event      listener to the video element to ensure `VIDEO_ENDED` is tracked by analytics.    4    5 Additionally, the `test/player.test.ts` file was updated to correctly identify the `ended` event listener, making the test more robust.
+- Ensure VIDEO_ENDED event is tracked 2 3 The `VIDEO_ENDED` event was not being tracked due to a missing event listener in `src/player.ts`. This commit adds the `ended` event listener to the video element to ensure `VIDEO_ENDED` is tracked by analytics. 4 5 Additionally, the `test/player.test.ts` file was updated to correctly identify the `ended` event listener, making the test more robust.
 
 ### Fixed
 
