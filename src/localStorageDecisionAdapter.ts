@@ -18,7 +18,7 @@ export class LocalStorageDecisionAdapter implements DecisionAdapter {
       localStorage.setItem(this.STORAGE_KEY, JSON.stringify(history));
     } catch (error) {
       console.error('Failed to save decision to localStorage:', error);
-      throw new Error('Decision storage failed');
+      throw new Error('Decision storage failed', { cause: error });
     }
   }
 
@@ -32,7 +32,7 @@ export class LocalStorageDecisionAdapter implements DecisionAdapter {
       return history ? JSON.parse(history) : [];
     } catch (error) {
       console.error('Failed to get decision history from localStorage:', error);
-      throw new Error('Decision retrieval failed');
+      throw new Error('Decision retrieval failed', { cause: error });
     }
   }
 
@@ -44,7 +44,7 @@ export class LocalStorageDecisionAdapter implements DecisionAdapter {
       localStorage.removeItem(this.STORAGE_KEY);
     } catch (error) {
       console.error('Failed to clear decision history from localStorage:', error);
-      throw new Error('Failed to clear decision history');
+      throw new Error('Failed to clear decision history', { cause: error });
     }
   }
 }

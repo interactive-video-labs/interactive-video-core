@@ -44,10 +44,7 @@ export type ChoiceVideoSegmentChangeInteraction = BaseInteraction & {
 };
 
 export type InteractionPayload =
-  | ChoiceInteraction
-  | TextInteraction
-  | RatingInteraction
-  | ChoiceVideoSegmentChangeInteraction;
+  ChoiceInteraction | TextInteraction | RatingInteraction | ChoiceVideoSegmentChangeInteraction;
 
 export type InteractionSegment = {
   id: string;
