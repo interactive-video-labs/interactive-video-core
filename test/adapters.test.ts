@@ -125,4 +125,47 @@ describe('LocalStorageDecisionAdapter', () => {
     const history = await adapter.getDecisionHistory();
     expect(history).toEqual([]);
   });
+
+  it('should preserve the storage error when saving fails', async () => {
+    const error = new Error('storage unavailable');
+    vi.spyOn(localStorage, 'setItem').mockImplementation(() => {
+      throw error;
+    });
+
+    await expect(
+      adapter.saveDecision({
+        cue: { id: 'cueD', startTime: 0, endTime: 10 },
+        type: 'linear',
+        time: 5,
+        reason: 'test-ls-error',
+      }),
+    ).rejects.toMatchObject({
+      message: 'Decision storage failed',
+      cause: error,
+    });
+  });
+
+  it('should preserve the storage error when retrieving fails', async () => {
+    const error = new Error('storage unavailable');
+    vi.spyOn(localStorage, 'getItem').mockImplementation(() => {
+      throw error;
+    });
+
+    await expect(adapter.getDecisionHistory()).rejects.toMatchObject({
+      message: 'Decision retrieval failed',
+      cause: error,
+    });
+  });
+
+  it('should preserve the storage error when clearing fails', async () => {
+    const error = new Error('storage unavailable');
+    vi.spyOn(localStorage, 'removeItem').mockImplementation(() => {
+      throw error;
+    });
+
+    await expect(adapter.clearDecisionHistory()).rejects.toMatchObject({
+      message: 'Failed to clear decision history',
+      cause: error,
+    });
+  });
 });

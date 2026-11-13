@@ -20,14 +20,7 @@ export type PlayerConfig = {
 };
 
 export type PlayerEvent =
-  | 'play'
-  | 'pause'
-  | 'ended'
-  | 'cue'
-  | 'interaction'
-  | 'branch'
-  | 'error'
-  | 'segmentchange';
+  'play' | 'pause' | 'ended' | 'cue' | 'interaction' | 'branch' | 'error' | 'segmentchange';
 
 export type PlayerState = 'idle' | 'playing' | 'waitingForInteraction' | 'ended' | 'error';
 
