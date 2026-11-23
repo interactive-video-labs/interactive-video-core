@@ -245,7 +245,13 @@ export class InteractionManager {
       metadata: { interactionType: payload?.type },
     };
 
-    this.decisionAdapter.saveDecision(decision);
+    void (async () => {
+      try {
+        await this.decisionAdapter.saveDecision(decision);
+      } catch (error) {
+        console.error('Failed to save interaction decision:', error);
+      }
+    })();
 
     if (payload?.type === 'choice-video-segment-change') {
       this.onResponseCallback({ nextSegment: response }, cue);
