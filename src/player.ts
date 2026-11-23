@@ -19,6 +19,7 @@ import { InMemoryDecisionAdapter } from './InMemoryDecisionAdapter';
 import { LocalStorageDecisionAdapter } from './localStorageDecisionAdapter';
 import { FALLBACK_CSS } from './style';
 import { SubtitlesManager } from './subtitlesManager';
+import { TimelineDebugger } from './timelineDebugger';
 
 /**
  * The main class for the Interactive Video Labs Player.
@@ -36,6 +37,8 @@ export class IVLabsPlayer {
   private i18n: I18n;
   private decisionAdapter: DecisionAdapter;
   private subtitlesManager?: SubtitlesManager;
+  private timelineDebugger?: TimelineDebugger;
+  private pauseForInteraction = false;
 
   private videoContainer: HTMLElement;
   private subtitlesElement?: HTMLTrackElement;
@@ -89,6 +92,7 @@ export class IVLabsPlayer {
     }
     this.analytics = new Analytics();
     this.stateMachine = new StateMachine(config.initialState || 'idle');
+    this.configureStateTransitions();
     this.interactionManager = new InteractionManager(
       this.videoContainer,
       this.i18n,
@@ -96,6 +100,17 @@ export class IVLabsPlayer {
     );
     this.cueHandler = new CueHandler(this.videoElement);
     this.segmentManager = new SegmentManager(this.videoElement);
+    if (config.debugger) {
+      this.timelineDebugger = new TimelineDebugger(
+        this.videoElement,
+        this.videoContainer,
+        config.cues || [],
+        () => this.stateMachine.getState(),
+      );
+      this.segmentManager.onSegmentChange((from, to) => {
+        this.timelineDebugger?.recordSegment(from, to);
+      });
+    }
     if (!config.subtitlesUrl) {
       this.start(config.cues);
     }
@@ -103,6 +118,7 @@ export class IVLabsPlayer {
 
   private start(cues?: CuePoint[]) {
     this.cueHandler.registerCues(cues || []);
+    this.timelineDebugger?.setCues(cues || []);
     if (!this.config.videoUrl) throw new Error('videoUrl must be provided in the PlayerConfig.');
     this.videoElement.src = this.config.videoUrl;
     this.bindEvents();
@@ -114,6 +130,7 @@ export class IVLabsPlayer {
    */
   private bindEvents(): void {
     this.cueHandler.onCue((cue: CuePoint) => {
+      this.timelineDebugger?.recordCue(cue);
       this.analytics.track('onCueEnter', {
         event: 'onCueEnter',
         cueId: cue.id,
@@ -121,8 +138,9 @@ export class IVLabsPlayer {
       });
 
       if (cue.payload?.interaction) {
+        this.pauseForInteraction = true;
         this.videoElement.pause();
-        this.stateMachine.transitionTo('waitingForInteraction');
+        this.transitionState('waitingForInteraction');
         this.interactionManager.handleInteractionCue(cue);
         this.analytics.track('onPromptShown', {
           event: 'onPromptShown',
@@ -130,11 +148,12 @@ export class IVLabsPlayer {
           timestamp: Date.now(),
         });
       } else {
-        this.stateMachine.transitionTo('playing');
+        this.transitionState('playing');
       }
     });
     //eslint-disable-next-line @typescript-eslint/no-explicit-any
     this.interactionManager.onResponse((response: any, cue: CuePoint) => {
+      this.timelineDebugger?.recordInteractionResponse(cue.id, response);
       this.analytics.track('onInteractionSelected', {
         event: 'onInteractionSelected',
         cueId: cue.id,
@@ -151,12 +170,14 @@ export class IVLabsPlayer {
         });
         this.segmentManager.playSegment(response.nextSegment);
       } else {
+        this.pauseForInteraction = false;
         this.videoElement.play().catch((error) => {
           console.error('Video playback failed:', error);
         });
       }
       console.log('Interaction response received:', response);
-      this.stateMachine.transitionTo('playing');
+      this.pauseForInteraction = false;
+      this.transitionState('playing');
       this.analytics.track('INTERACTION_COMPLETED', {
         event: 'INTERACTION_COMPLETED',
         cueId: cue.id,
@@ -166,6 +187,8 @@ export class IVLabsPlayer {
     });
 
     this.videoElement.addEventListener('play', () => {
+      this.transitionState('playing');
+      this.timelineDebugger?.recordPlaybackEvent('play');
       this.analytics.track('VIDEO_STARTED', {
         event: 'VIDEO_STARTED',
         timestamp: Date.now(),
@@ -173,6 +196,8 @@ export class IVLabsPlayer {
     });
 
     this.videoElement.addEventListener('pause', () => {
+      if (!this.pauseForInteraction) this.transitionState('idle');
+      this.timelineDebugger?.recordPlaybackEvent('pause');
       this.analytics.track('VIDEO_PAUSED', {
         event: 'VIDEO_PAUSED',
         timestamp: Date.now(),
@@ -180,16 +205,51 @@ export class IVLabsPlayer {
     });
 
     this.videoElement.addEventListener('ended', () => {
+      this.transitionState('ended');
+      this.timelineDebugger?.recordPlaybackEvent('ended');
       this.analytics.track('VIDEO_ENDED', {
         event: 'VIDEO_ENDED',
         timestamp: Date.now(),
       });
     });
+
+    this.videoElement.addEventListener('error', () => {
+      this.transitionState('error');
+      this.timelineDebugger?.recordPlaybackEvent('error');
+    });
+  }
+
+  private configureStateTransitions(): void {
+    const transitions: Record<PlayerState, PlayerState[]> = {
+      idle: ['playing', 'waitingForInteraction', 'ended', 'error'],
+      playing: ['idle', 'waitingForInteraction', 'ended', 'error'],
+      waitingForInteraction: ['idle', 'playing', 'ended', 'error'],
+      ended: ['idle', 'playing', 'error'],
+      error: ['idle', 'playing'],
+    };
+
+    for (const [from, destinations] of Object.entries(transitions) as [
+      PlayerState,
+      PlayerState[],
+    ][]) {
+      for (const to of destinations) {
+        this.stateMachine.addTransition({ from, to });
+      }
+    }
+  }
+
+  private transitionState(state: PlayerState): void {
+    const previousState = this.stateMachine.getState();
+    if (previousState === state) return;
+    if (this.stateMachine.transitionTo(state)) {
+      this.timelineDebugger?.recordState(previousState, state);
+    }
   }
 
   /** Loads cue points into the player. */
   public loadCues(cues: CuePoint[]): void {
     this.cueHandler.loadCues(cues);
+    this.timelineDebugger?.setCues(cues);
   }
 
   /** Loads interaction segments into the player. */
@@ -272,6 +332,8 @@ export class IVLabsPlayer {
     console.log('IVLabsPlayer destroy() called.');
     this.cueHandler.destroy();
     this.interactionManager.destroy();
+    this.timelineDebugger?.destroy();
+    this.segmentManager.destroy();
     this.analytics.track('onSessionEnd', {
       event: 'onSessionEnd',
       timestamp: Date.now(),

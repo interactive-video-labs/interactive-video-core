@@ -11,6 +11,7 @@ export type PlayerConfig = {
   translations?: Record<string, Translations>;
   autoplay?: boolean;
   loop?: boolean;
+  debugger?: boolean;
   //eslint-disable-next-line @typescript-eslint/no-explicit-any
   analyticsOptions?: Record<string, any>;
   interactions?: InteractionPayload[];
