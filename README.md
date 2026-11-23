@@ -170,6 +170,69 @@ async function clearHistory() {
 
 This allows you to easily integrate decision tracking into your interactive video experiences, enabling features like personalized content, progress saving, or analytics based on user choices.
 
+### Remote API adapter
+
+`RemoteApiDecisionAdapter` stores decisions in a remote JSON API and also exposes
+methods to save and retrieve playback progress. Its default endpoints are
+`GET|POST|DELETE /sessions/{sessionId}/decisions` and
+`GET|PUT /sessions/{sessionId}/progress`, relative to `baseUrl`. Decision responses
+may be an array or `{ "decisions": [...] }`; progress responses may be a progress
+object or `{ "progress": {...} }`. The adapter does not automatically seek or
+periodically save the player; the host application can apply retrieved progress
+and decide when to persist it.
+
+```typescript
+import { IVLabsPlayer, RemoteApiDecisionAdapter } from '@interactive-video-labs/core';
+
+const decisionAdapter = new RemoteApiDecisionAdapter({
+  baseUrl: 'https://api.example.com/v1',
+  sessionId: 'lesson-123',
+  userId: 'student-456',
+  headers: { Authorization: `Bearer ${accessToken}` },
+  onSyncStatus: ({ operation, status, error }) => {
+    console.log('Sync status:', operation, status, error);
+  },
+});
+
+async function initializePlayer() {
+  const decisions = await decisionAdapter.getDecisionHistory();
+  const progress = await decisionAdapter.getPlaybackProgress();
+  console.log('Previous decisions:', decisions);
+
+  const player = new IVLabsPlayer('player-container', {
+    videoUrl: 'lesson.mp4',
+    cues: lessonCues,
+    decisionAdapter,
+  });
+
+  // Apply this position after the video metadata has loaded, if progress exists.
+  if (progress) {
+    const video = document.querySelector<HTMLVideoElement>('#player-container video');
+    video?.addEventListener(
+      'loadedmetadata',
+      () => {
+        video.currentTime = progress.position;
+      },
+      { once: true },
+    );
+  }
+
+  return player;
+}
+
+void initializePlayer();
+
+// Call when appropriate for the host application, such as on pause or periodically.
+async function savePlaybackProgress(position: number) {
+  await decisionAdapter.savePlaybackProgress({ position });
+}
+```
+
+Configure custom relative endpoint paths with `endpoints: { decisions, playbackProgress }`.
+Paths can include `{sessionId}` and `{userId}` placeholders. HTTP and network errors
+reject the adapter method with `RemoteApiError`; `onSyncStatus` receives `started`,
+`succeeded`, and `failed` events so applications can surface or retry failures.
+
 ## ✨ Features
 
 The `@interactive-video-labs/core` engine includes the following core functionalities:
@@ -188,6 +251,7 @@ The `@interactive-video-labs/core` engine includes the following core functional
 - **Multi-segment Video Lessons:** Capability to support video content divided into multiple segments.
 - **Build and Publish Pipeline:** Configured for NPM publishing.
 - **Decision Tracking and Persistence:** Supports tracking and persisting user decisions using configurable adapters (e.g., `InMemoryDecisionAdapter`, `LocalStorageDecisionAdapter`).
+- **Remote Decision and Progress Sync:** Syncs decision history and playback progress with a configurable JSON API through `RemoteApiDecisionAdapter`.
 - **Opt-in Timeline Debugger:** Displays cue and interaction markers, playback time and state, segment/state transitions, an event log, and JSON log export.
 
 ### Timeline Debugger

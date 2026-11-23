@@ -1,3 +1,5 @@
+import type { CuePoint } from './cue';
+
 export type InteractionResponse = {
   cueId: string;
   choice: string;
@@ -52,3 +54,8 @@ export type InteractionSegment = {
   payload: InteractionPayload;
   triggerTime?: number;
 };
+
+export type InteractionHandler = (payload: InteractionPayload, cue: CuePoint) => void;
+
+//eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type ResponseHandler = (response: any, cue: CuePoint) => void;

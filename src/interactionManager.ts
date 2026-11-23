@@ -8,12 +8,10 @@ import {
   TextInteraction,
   InteractionPayload,
   RatingInteraction,
+  InteractionHandler,
+  ResponseHandler,
 } from './types';
 import { I18n } from './i18n';
-
-type InteractionHandler = (payload: InteractionPayload, cue: Cue) => void;
-//eslint-disable-next-line @typescript-eslint/no-explicit-any
-type ResponseHandler = (response: any, cue: Cue) => void;
 
 export class InteractionManager {
   private onPromptCallback?: InteractionHandler;
@@ -245,7 +243,13 @@ export class InteractionManager {
       metadata: { interactionType: payload?.type },
     };
 
-    this.decisionAdapter.saveDecision(decision);
+    void (async () => {
+      try {
+        await this.decisionAdapter.saveDecision(decision);
+      } catch (error) {
+        console.error('Failed to save interaction decision:', error);
+      }
+    })();
 
     if (payload?.type === 'choice-video-segment-change') {
       this.onResponseCallback({ nextSegment: response }, cue);

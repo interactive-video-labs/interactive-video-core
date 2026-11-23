@@ -1,6 +1,6 @@
-import { AnalyticsEvent, AnalyticsPayload } from './types';
+import type { AnalyticsCallback, AnalyticsEvent, AnalyticsPayload } from './types';
 
-type AnalyticsHook = (event: AnalyticsEvent, payload?: AnalyticsPayload) => void;
+export type { AnalyticsCallback as AnalyticsHook } from './types';
 
 /**
  * Handles analytics tracking for the player.
@@ -8,7 +8,7 @@ type AnalyticsHook = (event: AnalyticsEvent, payload?: AnalyticsPayload) => void
  * for the registration of custom hooks to process analytics data.
  */
 export class Analytics {
-  private hooks: { [key: string]: AnalyticsHook[] } = {};
+  private hooks: { [key: string]: AnalyticsCallback[] } = {};
 
   /**
    * Initializes the Analytics instance.
@@ -26,7 +26,7 @@ export class Analytics {
    * @param event - The event to listen for.
    * @param hook - The function to be called when the event is tracked.
    */
-  on(event: AnalyticsEvent, hook: AnalyticsHook) {
+  on(event: AnalyticsEvent, hook: AnalyticsCallback) {
     if (!this.hooks[event]) {
       this.hooks[event] = [];
     }

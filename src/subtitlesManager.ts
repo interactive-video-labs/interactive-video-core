@@ -1,11 +1,4 @@
-import { CuePoint } from './types';
-
-/**
- * Represents an extended text track cue with additional properties.
- */
-interface ExtendedTextTrackCue extends TextTrackCue {
-  text: string;
-}
+import type { CuePoint, ExtendedTextTrackCue } from './types';
 
 /**
  * Manages subtitles for a video element.

@@ -26,3 +26,5 @@ export type AnalyticsPayload = {
 export interface AnalyticsHook {
   (payload?: AnalyticsPayload): void;
 }
+
+export type AnalyticsCallback = (event: AnalyticsEvent, payload?: AnalyticsPayload) => void;

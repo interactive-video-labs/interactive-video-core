@@ -28,3 +28,10 @@ export type PlayerState = 'idle' | 'playing' | 'waitingForInteraction' | 'ended'
 export interface HTMLVideoElementWithControlsList extends HTMLVideoElement {
   controlsList: string;
 }
+
+export type StateTransition<S extends string> = {
+  from: S;
+  to: S;
+  condition?: () => boolean;
+  action?: () => void;
+};
