@@ -58,7 +58,7 @@ Here are the essential commands for development:
   pnpm serve
   ```
 
-  This command starts a local server to serve the `examples/index.html` file, allowing you to test core functionality in a browser. Make sure to run `pnpm build` first if you've made changes to the source code.
+  This command serves the repository root on port 8080 and opens `examples/index.html`. Serving the root keeps the demo's `../dist/index.mjs` import available. Run `pnpm build` first if you've made changes to the source code.
 
 - **Development with Live Reloading:**
 

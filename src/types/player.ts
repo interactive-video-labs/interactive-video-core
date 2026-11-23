@@ -2,6 +2,7 @@ import { CuePoint } from './cue';
 import { InteractionPayload } from './interaction';
 import { DecisionAdapter } from './decision';
 import { Translations } from './i18n';
+import type { LiveSyncConfig } from './liveSync';
 
 export type PlayerConfig = {
   videoUrl?: string;
@@ -18,6 +19,7 @@ export type PlayerConfig = {
   initialState?: PlayerState;
   decisionAdapterType?: 'memory' | 'localStorage';
   decisionAdapter?: DecisionAdapter;
+  liveSync?: LiveSyncConfig;
 };
 
 export type PlayerEvent =

@@ -16,6 +16,7 @@ import { I18n } from './i18n';
 export class InteractionManager {
   private onPromptCallback?: InteractionHandler;
   private onResponseCallback?: ResponseHandler;
+  private onDecisionSubmittedCallback?: (decision: Decision) => void;
   private container: HTMLElement;
   private interactionDiv: HTMLElement | null = null;
   private interactionStore: Map<number, Cue>;
@@ -63,6 +64,10 @@ export class InteractionManager {
 
   public onResponse(handler: ResponseHandler) {
     this.onResponseCallback = handler;
+  }
+
+  public onDecisionSubmitted(handler: (decision: Decision) => void) {
+    this.onDecisionSubmittedCallback = handler;
   }
 
   public handleInteractionCue(cue: Cue) {
@@ -242,6 +247,7 @@ export class InteractionManager {
       timestamp: Date.now(),
       metadata: { interactionType: payload?.type },
     };
+    this.onDecisionSubmittedCallback?.(decision);
 
     void (async () => {
       try {
@@ -263,6 +269,7 @@ export class InteractionManager {
   public destroy() {
     this.onPromptCallback = undefined;
     this.onResponseCallback = undefined;
+    this.onDecisionSubmittedCallback = undefined;
     this.clearInteractions();
     this.interactionStore.clear();
   }
