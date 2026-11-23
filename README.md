@@ -188,6 +188,21 @@ The `@interactive-video-labs/core` engine includes the following core functional
 - **Multi-segment Video Lessons:** Capability to support video content divided into multiple segments.
 - **Build and Publish Pipeline:** Configured for NPM publishing.
 - **Decision Tracking and Persistence:** Supports tracking and persisting user decisions using configurable adapters (e.g., `InMemoryDecisionAdapter`, `LocalStorageDecisionAdapter`).
+- **Opt-in Timeline Debugger:** Displays cue and interaction markers, playback time and state, segment/state transitions, an event log, and JSON log export.
+
+### Timeline Debugger
+
+Enable the developer overlay with `debugger: true`. It is disabled by default and adds no debugger UI when omitted.
+
+```typescript
+const player = new IVLabsPlayer('player-container', {
+  videoUrl: 'lesson.mp4',
+  cues: lessonCues,
+  debugger: true,
+});
+```
+
+Use the overlay toggle to view current time, upcoming cues, color-coded cue/interaction markers, and playback events. Cue marker tooltips include available cue metadata. Select **Export logs** to download a JSON event log containing playback time and wall-clock timestamps for cue triggers, interaction responses, segment switches, playback events, and state changes.
 
 ---
 

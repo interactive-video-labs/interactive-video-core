@@ -7,6 +7,7 @@ export class SegmentManager {
   private videoElement: HTMLVideoElementWithControlsList;
   private _mainVideoSrc: string | null = null;
   private _mainVideoCurrentTime: number = 0;
+  private segmentChangeCallback?: (from: string, to: string) => void;
 
   constructor(videoElement: HTMLVideoElementWithControlsList) {
     this.videoElement = videoElement;
@@ -20,11 +21,13 @@ export class SegmentManager {
 
         const resumeSrc = this._mainVideoSrc;
         const resumeTime = this._mainVideoCurrentTime;
+        const segmentSrc = this.videoElement.src;
 
         this._mainVideoSrc = null;
         this._mainVideoCurrentTime = 0;
 
         this.videoElement.src = resumeSrc;
+        this.segmentChangeCallback?.(segmentSrc, resumeSrc);
         this.videoElement.load();
 
         this.videoElement.addEventListener(
@@ -50,7 +53,9 @@ export class SegmentManager {
     this._mainVideoSrc = this.videoElement.src;
     this._mainVideoCurrentTime = this.videoElement.currentTime;
 
+    const currentSrc = this.videoElement.src;
     this.videoElement.src = newSegmentUrl;
+    this.segmentChangeCallback?.(currentSrc, newSegmentUrl);
     this.videoElement.load();
     this.videoElement.addEventListener(
       'loadedmetadata',
@@ -62,6 +67,10 @@ export class SegmentManager {
       },
       { once: true },
     );
+  }
+
+  public onSegmentChange(callback: (from: string, to: string) => void): void {
+    this.segmentChangeCallback = callback;
   }
 
   /**
