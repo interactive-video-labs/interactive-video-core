@@ -233,6 +233,82 @@ Paths can include `{sessionId}` and `{userId}` placeholders. HTTP and network er
 reject the adapter method with `RemoteApiError`; `onSyncStatus` receives `started`,
 `succeeded`, and `failed` events so applications can surface or retry failures.
 
+### Live session synchronization
+
+Live sync is opt-in and framework-agnostic. Supply any `LiveSyncAdapter` implementation
+to the player, or use `WebSocketSyncTransport` for JSON-over-WebSocket rooms:
+
+```typescript
+import { IVLabsPlayer, WebSocketSyncTransport } from '@interactive-video-labs/core';
+
+const liveSync = new WebSocketSyncTransport({
+  url: 'wss://live.example.com/sessions',
+  roomId: 'workshop-123',
+  clientId: 'student-456',
+  reconnect: { initialDelayMs: 500, maxDelayMs: 15_000, multiplier: 2 },
+  heartbeat: { intervalMs: 20_000, timeoutMs: 10_000 },
+});
+
+const player = new IVLabsPlayer('player-container', {
+  videoUrl: 'lesson.mp4',
+  cues: lessonCues,
+  liveSync: {
+    adapter: liveSync,
+    role: 'participant',
+    driftToleranceSeconds: 0.75,
+  },
+});
+
+player.onLiveSyncEvent((event) => {
+  if (event.type === 'poll:tally') {
+    console.log('Live poll tally:', event.payload.counts);
+  }
+  if (event.type === 'presence:update') {
+    console.log('Room participants:', event.payload.participants);
+  }
+});
+
+player.onLiveSyncStatus(({ status, error }) => {
+  console.log('Live sync status:', status, error);
+});
+
+// A UI can expose this as its own “Sync to Live” control.
+player.syncToLive();
+
+// Optional app-level messages need no UI or framework support in the core.
+void player.sendLiveSyncMessage({
+  type: 'reaction:submitted',
+  payload: { reaction: { emoji: '👏' } },
+});
+```
+
+Set `role: 'host'` on the instructor player. Host play, pause, seek, and segment
+changes are broadcast as `playback:sync`; cue triggers are broadcast by all
+participants. Participants apply room snapshots and host playback updates, seeking
+only when drift exceeds `driftToleranceSeconds` (default `0.75`). A snapshot's
+`serverTimestamp` is Unix time in milliseconds; `videoTimestamp` is media time in
+seconds. Playing snapshots advance from the server timestamp. The WebSocket transport
+estimates server clock offset from heartbeat pong messages when the server includes
+`payload.serverTimestamp`.
+
+The transport sends a `room:join` envelope on connect and each reconnect, and expects
+the server to respond with a `room:state` snapshot containing `videoTimestamp`,
+`serverTimestamp`, and `isPlaying`. Optional snapshot fields include `videoUrl`,
+`segmentUrl`, `mainVideoUrl`, `mainVideoTimestamp`, `activeCueId`, `activeNodeId`,
+and `aggregateCounts`. It also normalizes `playback:sync`, `cue:triggered`,
+`node:entered`, `decision:submitted`, `poll:tally`, `analytics:updated`, and
+`presence:update` messages for `onLiveSyncEvent` subscribers.
+
+Wire messages are JSON envelopes with `type`, `payload`, `roomId`, `clientId`, and a
+generated `messageId`. The server should reply to `{ "type": "heartbeat:ping" }` with
+`{ "type": "heartbeat:pong", "payload": { "serverTimestamp": 1710000000000 } }`.
+Reconnect uses exponential backoff; decision submissions and other outgoing messages
+are queued in memory while disconnected (up to 1,000 by default) and flushed after
+the next room join. This is a temporary in-process queue, not durable storage; the
+server can use `messageId` for deduplication. Local decision persistence continues
+through the configured `DecisionAdapter`. Call `player.destroy()` to disconnect and
+stop reconnect attempts.
+
 ## ✨ Features
 
 The `@interactive-video-labs/core` engine includes the following core functionalities:
@@ -252,6 +328,7 @@ The `@interactive-video-labs/core` engine includes the following core functional
 - **Build and Publish Pipeline:** Configured for NPM publishing.
 - **Decision Tracking and Persistence:** Supports tracking and persisting user decisions using configurable adapters (e.g., `InMemoryDecisionAdapter`, `LocalStorageDecisionAdapter`).
 - **Remote Decision and Progress Sync:** Syncs decision history and playback progress with a configurable JSON API through `RemoteApiDecisionAdapter`.
+- **Live Session Sync:** Synchronizes host playback and segment changes, hydrates late joiners, and exposes room events through a pluggable adapter or `WebSocketSyncTransport`.
 - **Opt-in Timeline Debugger:** Displays cue and interaction markers, playback time and state, segment/state transitions, an event log, and JSON log export.
 
 ### Timeline Debugger

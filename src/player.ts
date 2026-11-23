@@ -14,6 +14,12 @@ import type {
   Translations,
   AnalyticsPayload,
   DecisionAdapter,
+  LivePlaybackSync,
+  LiveRoomState,
+  LiveSyncAdapter,
+  LiveSyncClientMessage,
+  LiveSyncEvent,
+  LiveSyncStatusEvent,
 } from './types';
 import { InMemoryDecisionAdapter } from './InMemoryDecisionAdapter';
 import { LocalStorageDecisionAdapter } from './localStorageDecisionAdapter';
@@ -36,6 +42,19 @@ export class IVLabsPlayer {
   private segmentManager: SegmentManager;
   private i18n: I18n;
   private decisionAdapter: DecisionAdapter;
+  private liveSyncAdapter?: LiveSyncAdapter;
+  private liveSyncRole: 'host' | 'participant';
+  private liveSyncDriftToleranceSeconds: number;
+  private liveSyncConnected = false;
+  private applyingRemoteSegment = false;
+  private suppressNextPlayBroadcast = false;
+  private suppressNextPauseBroadcast = false;
+  private suppressPlayBroadcastTimer?: ReturnType<typeof setTimeout>;
+  private suppressPauseBroadcastTimer?: ReturnType<typeof setTimeout>;
+  private expectedRemoteSeek?: number;
+  private latestLiveState?: LiveRoomState;
+  private liveSyncEventListeners = new Set<(event: LiveSyncEvent) => void>();
+  private liveSyncStatusListeners = new Set<(event: LiveSyncStatusEvent) => void>();
   private subtitlesManager?: SubtitlesManager;
   private timelineDebugger?: TimelineDebugger;
   private pauseForInteraction = false;
@@ -48,6 +67,16 @@ export class IVLabsPlayer {
     if (!targetElement) throw new Error(`Target container with ID "${target}" not found.`);
 
     this.config = config;
+    this.liveSyncAdapter = config.liveSync?.adapter;
+    this.liveSyncRole = config.liveSync?.role ?? 'participant';
+    this.liveSyncDriftToleranceSeconds = config.liveSync?.driftToleranceSeconds ?? 0.75;
+    if (
+      !Number.isFinite(this.liveSyncDriftToleranceSeconds) ||
+      this.liveSyncDriftToleranceSeconds < 0
+    ) {
+      throw new RangeError('liveSync.driftToleranceSeconds must be a non-negative number.');
+    }
+
     this.videoContainer = document.createElement('div');
     this.videoContainer.className = 'ivl-player-container';
 
@@ -107,10 +136,25 @@ export class IVLabsPlayer {
         config.cues || [],
         () => this.stateMachine.getState(),
       );
-      this.segmentManager.onSegmentChange((from, to) => {
-        this.timelineDebugger?.recordSegment(from, to);
-      });
     }
+    this.segmentManager.onSegmentChange((from, to, mainVideoTimestamp, isPlaying) => {
+      this.timelineDebugger?.recordSegment(from, to);
+      if (this.liveSyncRole === 'host' && !this.applyingRemoteSegment) {
+        if (this.mediaSourcesMatch(to, this.config.videoUrl ?? '')) {
+          this.publishPlaybackSync('seek', {
+            videoUrl: to,
+            videoTimestamp: mainVideoTimestamp ?? this.videoElement.currentTime,
+            isPlaying,
+          });
+        } else {
+          this.publishPlaybackSync('segment', {
+            segmentUrl: to,
+            mainVideoTimestamp: mainVideoTimestamp ?? this.videoElement.currentTime,
+            isPlaying,
+          });
+        }
+      }
+    });
     if (!config.subtitlesUrl) {
       this.start(config.cues);
     }
@@ -123,6 +167,7 @@ export class IVLabsPlayer {
     this.videoElement.src = this.config.videoUrl;
     this.bindEvents();
     this.cueHandler.start();
+    this.connectLiveSync();
   }
 
   /**
@@ -135,6 +180,14 @@ export class IVLabsPlayer {
         event: 'onCueEnter',
         cueId: cue.id,
         timestamp: Date.now(),
+      });
+      this.publishLiveMessage({
+        type: 'cue:triggered',
+        payload: {
+          cueId: cue.id,
+          videoTimestamp: this.videoElement.currentTime,
+          serverTimestamp: this.getServerTimestamp(),
+        },
       });
 
       if (cue.payload?.interaction) {
@@ -185,6 +238,9 @@ export class IVLabsPlayer {
         timestamp: Date.now(),
       });
     });
+    this.interactionManager.onDecisionSubmitted((decision) => {
+      this.publishLiveMessage({ type: 'decision:submitted', payload: { decision } });
+    });
 
     this.videoElement.addEventListener('play', () => {
       this.transitionState('playing');
@@ -193,6 +249,11 @@ export class IVLabsPlayer {
         event: 'VIDEO_STARTED',
         timestamp: Date.now(),
       });
+      if (this.suppressNextPlayBroadcast) {
+        this.clearPlayBroadcastSuppression();
+      } else if (this.liveSyncRole === 'host') {
+        this.publishPlaybackSync('play');
+      }
     });
 
     this.videoElement.addEventListener('pause', () => {
@@ -202,6 +263,21 @@ export class IVLabsPlayer {
         event: 'VIDEO_PAUSED',
         timestamp: Date.now(),
       });
+      if (this.suppressNextPauseBroadcast) {
+        this.clearPauseBroadcastSuppression();
+      } else if (this.liveSyncRole === 'host') {
+        this.publishPlaybackSync('pause');
+      }
+    });
+
+    this.videoElement.addEventListener('seeked', () => {
+      if (this.expectedRemoteSeek !== undefined) {
+        const isRemoteSeek =
+          Math.abs(this.videoElement.currentTime - this.expectedRemoteSeek) < 0.1;
+        this.expectedRemoteSeek = undefined;
+        if (isRemoteSeek) return;
+      }
+      if (this.liveSyncRole === 'host') this.publishPlaybackSync('seek');
     });
 
     this.videoElement.addEventListener('ended', () => {
@@ -246,6 +322,234 @@ export class IVLabsPlayer {
     }
   }
 
+  private connectLiveSync(): void {
+    if (!this.liveSyncAdapter || this.liveSyncConnected) return;
+    this.liveSyncConnected = true;
+
+    try {
+      void Promise.resolve(
+        this.liveSyncAdapter.connect(
+          (event) => this.handleLiveSyncEvent(event),
+          (event) => this.notifyLiveSyncStatus(event),
+        ),
+      ).catch((error: unknown) => {
+        this.notifyLiveSyncStatus({
+          status: 'error',
+          error: error instanceof Error ? error : new Error('Live sync connection failed.'),
+        });
+      });
+    } catch (error) {
+      this.notifyLiveSyncStatus({
+        status: 'error',
+        error: error instanceof Error ? error : new Error('Live sync connection failed.'),
+      });
+    }
+  }
+
+  private handleLiveSyncEvent(event: LiveSyncEvent): void {
+    this.liveSyncEventListeners.forEach((listener) => {
+      try {
+        listener(event);
+      } catch (error) {
+        console.error('Live sync event listener failed:', error);
+      }
+    });
+
+    if (event.type === 'room:state') {
+      this.latestLiveState = event.payload;
+      this.applyLiveState(event.payload);
+    } else if (event.type === 'playback:sync' && this.liveSyncRole !== 'host') {
+      const state: LiveRoomState = {
+        ...event.payload,
+        ...(event.payload.action === 'segment' && event.payload.segmentUrl
+          ? { segmentUrl: event.payload.segmentUrl }
+          : {}),
+      };
+      this.latestLiveState = state;
+      this.applyLiveState(state);
+    }
+  }
+
+  private applyLiveState(state: LiveRoomState, force = false): void {
+    let sourceChanged = false;
+    if (state.segmentUrl) {
+      const mainVideoUrl = state.mainVideoUrl ?? this.config.videoUrl ?? this.videoElement.src;
+      sourceChanged = !this.mediaSourcesMatch(this.videoElement.src, state.segmentUrl);
+      this.applyingRemoteSegment = true;
+      try {
+        this.segmentManager.syncSegment(
+          state.segmentUrl,
+          mainVideoUrl,
+          state.mainVideoTimestamp ?? 0,
+        );
+      } finally {
+        this.applyingRemoteSegment = false;
+      }
+    } else if (state.videoUrl) {
+      sourceChanged = !this.mediaSourcesMatch(this.videoElement.src, state.videoUrl);
+      this.applyingRemoteSegment = true;
+      try {
+        this.segmentManager.syncMainVideo(state.videoUrl);
+      } finally {
+        this.applyingRemoteSegment = false;
+      }
+    }
+
+    if (sourceChanged) {
+      if (!this.videoElement.paused) this.suppressPauseBroadcastOnce();
+      this.videoElement.addEventListener(
+        'loadedmetadata',
+        () => {
+          if (this.latestLiveState === state) {
+            if (state.segmentUrl) this.suppressPlayBroadcastOnce();
+            this.applyLivePlaybackPosition(state, true);
+          }
+        },
+        { once: true },
+      );
+      return;
+    }
+    this.applyLivePlaybackPosition(state, force);
+  }
+
+  private applyLivePlaybackPosition(state: LiveRoomState, force: boolean): void {
+    const now = this.getServerTimestamp();
+    const targetTime =
+      state.videoTimestamp +
+      (state.isPlaying ? Math.max(0, now - state.serverTimestamp) / 1000 : 0);
+    const drift = Math.abs(targetTime - this.videoElement.currentTime);
+
+    if (force || drift > this.liveSyncDriftToleranceSeconds) {
+      this.expectedRemoteSeek = targetTime;
+      this.videoElement.currentTime = targetTime;
+    }
+
+    if (state.isPlaying && this.videoElement.paused) {
+      try {
+        this.suppressPlayBroadcastOnce();
+        void Promise.resolve(this.videoElement.play()).catch((error: unknown) => {
+          this.clearPlayBroadcastSuppression();
+          console.error('Live sync playback failed:', error);
+        });
+      } catch (error) {
+        this.clearPlayBroadcastSuppression();
+        console.error('Live sync playback failed:', error);
+      }
+    } else if (!state.isPlaying && !this.videoElement.paused) {
+      this.suppressPauseBroadcastOnce();
+      this.videoElement.pause();
+    }
+  }
+
+  private suppressPlayBroadcastOnce(): void {
+    this.suppressNextPlayBroadcast = true;
+    if (this.suppressPlayBroadcastTimer !== undefined) {
+      clearTimeout(this.suppressPlayBroadcastTimer);
+    }
+    this.suppressPlayBroadcastTimer = setTimeout(() => {
+      this.clearPlayBroadcastSuppression();
+    }, 1_000);
+  }
+
+  private clearPlayBroadcastSuppression(): void {
+    this.suppressNextPlayBroadcast = false;
+    if (this.suppressPlayBroadcastTimer !== undefined) {
+      clearTimeout(this.suppressPlayBroadcastTimer);
+      this.suppressPlayBroadcastTimer = undefined;
+    }
+  }
+
+  private suppressPauseBroadcastOnce(): void {
+    this.suppressNextPauseBroadcast = true;
+    if (this.suppressPauseBroadcastTimer !== undefined) {
+      clearTimeout(this.suppressPauseBroadcastTimer);
+    }
+    this.suppressPauseBroadcastTimer = setTimeout(() => {
+      this.clearPauseBroadcastSuppression();
+    }, 1_000);
+  }
+
+  private clearPauseBroadcastSuppression(): void {
+    this.suppressNextPauseBroadcast = false;
+    if (this.suppressPauseBroadcastTimer !== undefined) {
+      clearTimeout(this.suppressPauseBroadcastTimer);
+      this.suppressPauseBroadcastTimer = undefined;
+    }
+  }
+
+  private mediaSourcesMatch(currentSource: string, targetSource: string): boolean {
+    if (currentSource === targetSource) return true;
+    try {
+      return (
+        new URL(currentSource, document.baseURI).href ===
+        new URL(targetSource, document.baseURI).href
+      );
+    } catch {
+      return false;
+    }
+  }
+
+  private publishPlaybackSync(
+    action: LivePlaybackSync['action'],
+    extra: Pick<
+      LivePlaybackSync,
+      | 'segmentUrl'
+      | 'videoUrl'
+      | 'videoTimestamp'
+      | 'mainVideoUrl'
+      | 'mainVideoTimestamp'
+      | 'isPlaying'
+    > = {},
+  ): void {
+    this.publishLiveMessage({
+      type: 'playback:sync',
+      payload: {
+        action,
+        videoTimestamp: extra.videoTimestamp ?? this.videoElement.currentTime,
+        serverTimestamp: this.getServerTimestamp(),
+        isPlaying: extra.isPlaying ?? !this.videoElement.paused,
+        ...(action === 'segment'
+          ? {
+              mainVideoUrl: this.config.videoUrl,
+              mainVideoTimestamp: extra.mainVideoTimestamp ?? this.videoElement.currentTime,
+            }
+          : {}),
+        ...extra,
+      },
+    });
+  }
+
+  private getServerTimestamp(): number {
+    return this.liveSyncAdapter?.getServerTimestamp?.() ?? Date.now();
+  }
+
+  private publishLiveMessage(message: LiveSyncClientMessage): void {
+    if (!this.liveSyncAdapter) return;
+    try {
+      void Promise.resolve(this.liveSyncAdapter.send(message)).catch((error: unknown) => {
+        console.error(
+          `Failed to publish live sync message "${message.type}":`,
+          error instanceof Error ? error : new Error('Live sync message could not be sent.'),
+        );
+      });
+    } catch (error) {
+      console.error(
+        `Failed to publish live sync message "${message.type}":`,
+        error instanceof Error ? error : new Error('Live sync message could not be sent.'),
+      );
+    }
+  }
+
+  private notifyLiveSyncStatus(event: LiveSyncStatusEvent): void {
+    this.liveSyncStatusListeners.forEach((listener) => {
+      try {
+        listener(event);
+      } catch (error) {
+        console.error('Live sync status listener failed:', error);
+      }
+    });
+  }
+
   /** Loads cue points into the player. */
   public loadCues(cues: CuePoint[]): void {
     this.cueHandler.loadCues(cues);
@@ -270,6 +574,35 @@ export class IVLabsPlayer {
   /** Pauses the video. */
   public pause(): void {
     this.videoElement.pause();
+  }
+
+  /** Applies the latest room snapshot immediately, regardless of the drift threshold. */
+  public syncToLive(): void {
+    if (this.latestLiveState) this.applyLiveState(this.latestLiveState, true);
+  }
+
+  /** Subscribes to normalized live room events such as poll tallies and presence updates. */
+  public onLiveSyncEvent(listener: (event: LiveSyncEvent) => void): () => void {
+    this.liveSyncEventListeners.add(listener);
+    return () => this.liveSyncEventListeners.delete(listener);
+  }
+
+  /** Subscribes to live transport lifecycle updates. */
+  public onLiveSyncStatus(listener: (event: LiveSyncStatusEvent) => void): () => void {
+    this.liveSyncStatusListeners.add(listener);
+    return () => this.liveSyncStatusListeners.delete(listener);
+  }
+
+  /** Publishes an optional application-level live event, such as a reaction or presence update. */
+  public sendLiveSyncMessage(message: LiveSyncClientMessage): Promise<void> {
+    if (!this.liveSyncAdapter) {
+      return Promise.reject(new Error('Live sync is not configured for this player.'));
+    }
+    try {
+      return Promise.resolve(this.liveSyncAdapter.send(message));
+    } catch (error) {
+      return Promise.reject(error);
+    }
   }
 
   /**
@@ -334,6 +667,19 @@ export class IVLabsPlayer {
     this.interactionManager.destroy();
     this.timelineDebugger?.destroy();
     this.segmentManager.destroy();
+    this.clearPlayBroadcastSuppression();
+    this.clearPauseBroadcastSuppression();
+    if (this.liveSyncAdapter) {
+      try {
+        void Promise.resolve(this.liveSyncAdapter.disconnect()).catch((error: unknown) => {
+          console.error('Failed to disconnect live sync:', error);
+        });
+      } catch (error) {
+        console.error('Failed to disconnect live sync:', error);
+      }
+    }
+    this.liveSyncEventListeners.clear();
+    this.liveSyncStatusListeners.clear();
     this.analytics.track('onSessionEnd', {
       event: 'onSessionEnd',
       timestamp: Date.now(),

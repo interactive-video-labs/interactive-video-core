@@ -20,7 +20,7 @@
     "dev": "tsup --watch",
     "test": "vitest run",
     "clean": "rimraf dist",
-    "serve": "http-server .",
+    "serve": "http-server . --port 8080 -o /examples/",
     "lint": "eslint . --ext .ts",
     "format": "prettier --write .",
     "prepare": "pnpm lint --fix && pnpm format && pnpm build "

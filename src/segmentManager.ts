@@ -7,7 +7,12 @@ export class SegmentManager {
   private videoElement: HTMLVideoElementWithControlsList;
   private _mainVideoSrc: string | null = null;
   private _mainVideoCurrentTime: number = 0;
-  private segmentChangeCallback?: (from: string, to: string) => void;
+  private segmentChangeCallback?: (
+    from: string,
+    to: string,
+    mainVideoTimestamp?: number,
+    isPlaying?: boolean,
+  ) => void;
 
   constructor(videoElement: HTMLVideoElementWithControlsList) {
     this.videoElement = videoElement;
@@ -27,7 +32,7 @@ export class SegmentManager {
         this._mainVideoCurrentTime = 0;
 
         this.videoElement.src = resumeSrc;
-        this.segmentChangeCallback?.(segmentSrc, resumeSrc);
+        this.segmentChangeCallback?.(segmentSrc, resumeSrc, resumeTime, true);
         this.videoElement.load();
 
         this.videoElement.addEventListener(
@@ -50,12 +55,36 @@ export class SegmentManager {
    * @param newSegmentUrl The URL of the new video segment to play.
    */
   public playSegment(newSegmentUrl: string): void {
-    this._mainVideoSrc = this.videoElement.src;
-    this._mainVideoCurrentTime = this.videoElement.currentTime;
+    if (!this._mainVideoSrc) {
+      this._mainVideoSrc = this.videoElement.src;
+      this._mainVideoCurrentTime = this.videoElement.currentTime;
+    }
 
+    this.activateSegment(newSegmentUrl, this._mainVideoCurrentTime);
+  }
+
+  public syncSegment(segmentUrl: string, mainVideoUrl: string, mainVideoTimestamp: number): void {
+    this._mainVideoSrc = mainVideoUrl;
+    this._mainVideoCurrentTime = mainVideoTimestamp;
+    this.activateSegment(segmentUrl, mainVideoTimestamp);
+  }
+
+  public syncMainVideo(videoUrl: string): void {
     const currentSrc = this.videoElement.src;
+    this._mainVideoSrc = null;
+    this._mainVideoCurrentTime = 0;
+    if (this.sourcesMatch(currentSrc, videoUrl)) return;
+
+    this.videoElement.src = videoUrl;
+    this.segmentChangeCallback?.(currentSrc, videoUrl);
+    this.videoElement.load();
+  }
+
+  private activateSegment(newSegmentUrl: string, mainVideoTimestamp: number): void {
+    const currentSrc = this.videoElement.src;
+    if (this.sourcesMatch(currentSrc, newSegmentUrl)) return;
     this.videoElement.src = newSegmentUrl;
-    this.segmentChangeCallback?.(currentSrc, newSegmentUrl);
+    this.segmentChangeCallback?.(currentSrc, newSegmentUrl, mainVideoTimestamp, true);
     this.videoElement.load();
     this.videoElement.addEventListener(
       'loadedmetadata',
@@ -69,8 +98,22 @@ export class SegmentManager {
     );
   }
 
-  public onSegmentChange(callback: (from: string, to: string) => void): void {
+  public onSegmentChange(
+    callback: (from: string, to: string, mainVideoTimestamp?: number, isPlaying?: boolean) => void,
+  ): void {
     this.segmentChangeCallback = callback;
+  }
+
+  private sourcesMatch(currentSource: string, targetSource: string): boolean {
+    if (currentSource === targetSource) return true;
+    try {
+      return (
+        new URL(currentSource, document.baseURI).href ===
+        new URL(targetSource, document.baseURI).href
+      );
+    } catch {
+      return false;
+    }
   }
 
   /**
