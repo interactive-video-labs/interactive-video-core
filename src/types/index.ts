@@ -4,3 +4,4 @@ export * from './interaction';
 export * from './analytics';
 export * from './decision';
 export * from './i18n';
+export * from './timeline';

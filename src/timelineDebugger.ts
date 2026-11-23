@@ -1,13 +1,4 @@
-import { CuePoint, PlayerState } from './types';
-
-type DebugEventType = 'cue' | 'interaction' | 'segment' | 'state' | 'playback';
-
-type DebugEvent = {
-  type: DebugEventType;
-  playbackTime: number;
-  timestamp: number;
-  details: Record<string, string>;
-};
+import type { CuePoint, DebugEvent, DebugEventType, PlayerState } from './types';
 
 /**
  * Renders an opt-in timeline and event log for inspecting player behavior.

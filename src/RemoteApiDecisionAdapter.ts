@@ -1,37 +1,17 @@
-import type { Decision, DecisionAdapter } from './types';
+import type {
+  Decision,
+  DecisionAdapter,
+  PlaybackProgress,
+  RemoteApiDecisionAdapterOptions,
+  RemoteApiSyncOperation,
+} from './types';
 
-export type PlaybackProgress = {
-  position: number;
-  duration?: number;
-  updatedAt?: number;
-  metadata?: Record<string, unknown>;
-};
-
-export type RemoteApiSyncOperation =
-  | 'saveDecision'
-  | 'getDecisionHistory'
-  | 'clearDecisionHistory'
-  | 'savePlaybackProgress'
-  | 'getPlaybackProgress';
-
-export type RemoteApiSyncEvent = {
-  operation: RemoteApiSyncOperation;
-  status: 'started' | 'succeeded' | 'failed';
-  error?: Error;
-};
-
-export type RemoteApiDecisionAdapterOptions = {
-  baseUrl: string;
-  sessionId: string;
-  userId?: string;
-  headers?: Record<string, string>;
-  endpoints?: {
-    decisions?: string;
-    playbackProgress?: string;
-  };
-  fetch?: typeof fetch;
-  onSyncStatus?: (event: RemoteApiSyncEvent) => void;
-};
+export type {
+  PlaybackProgress,
+  RemoteApiDecisionAdapterOptions,
+  RemoteApiSyncEvent,
+  RemoteApiSyncOperation,
+} from './types';
 
 export class RemoteApiError extends Error {
   constructor(

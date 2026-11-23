@@ -8,12 +8,10 @@ import {
   TextInteraction,
   InteractionPayload,
   RatingInteraction,
+  InteractionHandler,
+  ResponseHandler,
 } from './types';
 import { I18n } from './i18n';
-
-type InteractionHandler = (payload: InteractionPayload, cue: Cue) => void;
-//eslint-disable-next-line @typescript-eslint/no-explicit-any
-type ResponseHandler = (response: any, cue: Cue) => void;
 
 export class InteractionManager {
   private onPromptCallback?: InteractionHandler;

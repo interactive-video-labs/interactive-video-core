@@ -1,6 +1,6 @@
-import { CuePoint as Cue } from './types';
+import type { CueCallback, CuePoint as Cue } from './types';
 
-export type CueCallback = (cue: Cue) => void;
+export type { CueCallback } from './types';
 
 /**
  * Manages and triggers cue points during video playback.

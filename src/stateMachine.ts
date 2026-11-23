@@ -1,11 +1,6 @@
-import { PlayerState } from './types';
+import type { PlayerState, StateTransition } from './types';
 
-export type StateTransition<S extends string> = {
-  from: S;
-  to: S;
-  condition?: () => boolean;
-  action?: () => void;
-};
+export type { StateTransition } from './types';
 
 /**
  * Manages state transitions for the player.
