@@ -31,12 +31,15 @@ export class SubtitlesManager {
         return;
       }
       const trackCues = Array.from(track.cues || []);
-      const cues = this.cuePoints.map((cueConfig) => ({
-        ...cueConfig,
-        time:
-          trackCues.find((cue) => (cue as ExtendedTextTrackCue)?.text === cueConfig.subtitleText)
-            ?.startTime || 0,
-      }));
+      const cues = this.cuePoints.map((cueConfig) => {
+        const subtitleCue = cueConfig.subtitleText
+          ? trackCues.find((cue) => (cue as ExtendedTextTrackCue)?.text === cueConfig.subtitleText)
+          : undefined;
+        return {
+          ...cueConfig,
+          time: subtitleCue?.startTime ?? cueConfig.time,
+        };
+      });
       callback(cues);
     });
     this.subtitlesElement.addEventListener('error', (error) => {
