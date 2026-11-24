@@ -1,3 +1,14 @@
+## v0.3.1 2026-11-24
+
+### Changed
+
+- Merge pull request #178 from taj54/main
+- main' into main
+
+### Fixed
+
+- update cue time mapping in SubtitlesManager to preserve non-subtitle cue times
+
 ## v0.3.0 2026-11-23
 
 ### Added
