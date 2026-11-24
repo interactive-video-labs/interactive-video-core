@@ -323,7 +323,7 @@ The `@interactive-video-labs/core` engine includes the following core functional
 - **Basic HTML Demo:** A raw HTML demo (`examples/index.html`) to validate core functionality without frameworks.
 - **Testing Framework:** Utilizes Vitest for comprehensive unit testing.
 - **Localization Support:** Enabled for broader audience reach.
-- **Subtitle-based Cue Generation:** Supports generating cues from subtitles.
+- **Subtitle-based Cue Generation:** Matches cues to subtitle text while preserving the configured times of cues that are not tied to subtitles.
 - **Multi-segment Video Lessons:** Capability to support video content divided into multiple segments.
 - **Build and Publish Pipeline:** Configured for NPM publishing.
 - **Decision Tracking and Persistence:** Supports tracking and persisting user decisions using configurable adapters (e.g., `InMemoryDecisionAdapter`, `LocalStorageDecisionAdapter`).
